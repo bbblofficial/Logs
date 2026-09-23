@@ -4,21 +4,30 @@
 # ============================================================
 
 # Plugin messaging channel.
-# ⚠ Must match the Spigot side (spigot-plugin/config.yml -> channel)
+# Must match the Spigot side (spigot-plugin/config.yml -> channel)
 channel: "velocitylogs:main"
 
-# Permission required to see command logs.
-# OP players on backend servers automatically see logs regardless of this.
+# ---------------- Permissions ----------------
 see-permission: "velocitylogs.see"
-
-# Permission required to run "/logs reload"
 reload-permission: "velocitylogs.reload"
+admin-permission: "velocitylogs.admin"
 
+# Extra permissions that automatically grant log visibility.
+# If a player has ANY of these, they see logs.
+# Useful for wildcard setups (e.g. LuckPerms "*" permission).
+extra-see-permissions:
+  - "velocitylogs.*"
+  - "*"
+
+# ---------------- Behaviour ----------------
 # Should players who run a command see their own command in chat?
 show-to-self: false
 
 # Log every command to the proxy console as well?
 log-to-console: true
+
+# Print debug info to console (join/leave OP status, permission checks)
+debug: true
 
 # ---------------- Message Format ----------------
 # Placeholders:
@@ -29,10 +38,10 @@ log-to-console: true
 #
 # Color codes:  &a &b &c &d &e &f &0-&9 &l &m &n &o &k &r
 # Hex colors:   &#FF55FF
-message-format: "&8[&cLogs&8] &e{player} &8» &b{server} &8» &f/{command}"
+message-format: "&8[&cLogs&8] &e{player} &8>> &b{server} &8>> &f/{command}"
 
 # Message sent when someone runs "/logs reload"
-reload-success-message: "&a✔ Config reloaded successfully!"
+reload-success-message: "&a[OK] Config reloaded successfully!"
 
-# Message sent when someone lacks permission for "/logs reload"
-no-permission-message: "&c✘ You don't have permission to do that!"
+# Message sent when someone lacks permission
+no-permission-message: "&c[!] You don't have permission to do that!"

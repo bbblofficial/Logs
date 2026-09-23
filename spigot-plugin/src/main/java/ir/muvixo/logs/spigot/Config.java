@@ -20,6 +20,7 @@ public class Config {
     private String serverName;
     private boolean logOps;
     private boolean reportOpStatus;
+    private int opStatusIntervalMinutes;
     private List<String> blacklist;
     private List<String> ignoredPlayers;
 
@@ -34,15 +35,14 @@ public class Config {
         this.channel = cfg.getString("channel", "velocitylogs:main");
         this.logOps = cfg.getBoolean("log-ops", true);
         this.reportOpStatus = cfg.getBoolean("report-op-status", true);
+        this.opStatusIntervalMinutes = cfg.getInt("op-status-interval-minutes", 5);
 
-        // ----- server name -----
         String configured = cfg.getString("server-name", "");
         if (configured != null && !configured.trim().isEmpty()) {
             this.serverName = configured.trim();
         } else {
             String bukkit = plugin.getServer().getServerName();
-            if (bukkit == null
-                    || bukkit.isEmpty()
+            if (bukkit == null || bukkit.isEmpty()
                     || bukkit.equalsIgnoreCase("Unknown Server")) {
                 this.serverName = "server-" + plugin.getServer().getPort();
             } else {
@@ -50,7 +50,6 @@ public class Config {
             }
         }
 
-        // ----- lists -----
         List<String> rawBlacklist = cfg.getStringList("blacklist");
         if (rawBlacklist == null) rawBlacklist = new ArrayList<>();
         this.blacklist = rawBlacklist.stream()
@@ -68,6 +67,7 @@ public class Config {
     public String getServerName() { return serverName; }
     public boolean isLogOps() { return logOps; }
     public boolean isReportOpStatus() { return reportOpStatus; }
+    public int getOpStatusIntervalMinutes() { return opStatusIntervalMinutes; }
 
     public boolean isBlacklisted(String command) {
         String base = command.split(" ", 2)[0].toLowerCase(Locale.ROOT);

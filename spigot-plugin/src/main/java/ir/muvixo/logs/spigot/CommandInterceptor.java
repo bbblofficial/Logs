@@ -8,12 +8,11 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 
 /**
  * Intercepts every command a player types and forwards it to Velocity.
- * Also reports OP status on join.
- *
- * Works for ALL players - including OPs and staff.
+ * Also reports OP status on join / quit / periodically.
  *
  * @author muvixo
  */
@@ -28,21 +27,28 @@ public class CommandInterceptor implements Listener {
     }
 
     /**
-     * On join: if the player is OP, tell Velocity so they auto-see logs.
+     * On join: report OP status (both true and false) so the proxy knows.
      */
     @EventHandler(priority = EventPriority.MONITOR)
     public void onJoin(PlayerJoinEvent event) {
         if (!config.isReportOpStatus()) return;
 
         Player player = event.getPlayer();
-        if (!player.isOp()) return;
 
-        ByteArrayDataOutput out = ByteStreams.newDataOutput();
-        out.writeUTF("OP_STATUS");
-        out.writeUTF(player.getName());
-        out.writeUTF("true");
+        // Always send status, whether true or false, so the proxy starts fresh.
+        plugin.sendOpStatus(player, player.isOp());
+    }
 
-        player.sendPluginMessage(plugin, config.getChannel(), out.toByteArray());
+    /**
+     * On quit: notify the proxy to unmark OP.
+     */
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onQuit(PlayerQuitEvent event) {
+        if (!config.isReportOpStatus()) return;
+        // Only bother if the player was OP
+        if (event.getPlayer().isOp()) {
+            plugin.sendOpStatus(event.getPlayer(), false);
+        }
     }
 
     /**
@@ -52,10 +58,7 @@ public class CommandInterceptor implements Listener {
     public void onCommand(PlayerCommandPreprocessEvent event) {
         Player player = event.getPlayer();
 
-        // Optional: skip OPs entirely if log-ops is false
         if (!config.isLogOps() && player.isOp()) return;
-
-        // Skip ignored players
         if (config.isIgnoredPlayer(player.getName())) return;
 
         String full = event.getMessage();

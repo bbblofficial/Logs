@@ -7,19 +7,17 @@ and broadcasts them to staff / OP players on the Velocity proxy.
 
 ## Features
 
-- Logs every command a player runs on any backend server (works for OPs too)
-- Automatic OP detection across the whole network
+- Logs every command on any backend server (works for OPs too)
+- **Multi-source OP detection:**
+  - Backend `player.isOp()`
+  - Proxy OP (`ops.json`)
+  - LuckPerms groups with `velocitylogs.see`
+  - Wildcard perms like `*` or `velocitylogs.*`
 - Full config.yml management on both sides
 - `/logs reload` — reload config without restarting
+- `/logs debug <player>` — see why a player is/isn't receiving logs
 - Color support: `&a`, `&c`, `&l`, `&#RRGGBB`
 - Works with Minecraft 1.8.* backend servers
-
-## Architecture
-
-- **`spigot-plugin`** — Spigot 1.8.* plugin. Listens to `PlayerCommandPreprocessEvent`
-  and forwards the raw command via plugin messaging to the proxy.
-- **`velocity-plugin`** — Velocity plugin. Receives forwarded messages and displays
-  them to everyone with `velocitylogs.see` **or** who is OP on a backend server.
 
 ## Compatibility
 
@@ -42,9 +40,9 @@ Outputs:
 
 ## Install
 
-1. Drop `velocity-logs-velocity-1.0.0.jar` into the Velocity `plugins/` folder.
-2. Drop `velocity-logs-spigot-1.0.0.jar` into each Spigot 1.8 backend server's `plugins/` folder.
-3. Make sure `bungee-plugin-message-channel = true` in Velocity `velocity.toml` (default).
+1. Drop `velocity-logs-velocity-1.0.0.jar` into Velocity `plugins/`.
+2. Drop `velocity-logs-spigot-1.0.0.jar` into each Spigot 1.8 backend's `plugins/`.
+3. Make sure `bungee-plugin-message-channel = true` in `velocity.toml` (default).
 4. Restart everything.
 
 ## Commands
@@ -52,20 +50,16 @@ Outputs:
 | Command | Description |
 |---------|-------------|
 | `/logs` | Show plugin info |
-| `/logs reload` | Reload config files |
+| `/logs reload` | Reload config |
 | `/logs help` | Show help |
+| `/logs debug <player>` | Diagnose a player's permissions |
 
 ## Permissions
 
 | Permission | Description |
 |-----------|-------------|
 | `velocitylogs.see` | See command logs |
-| `velocitylogs.reload` | Reload the plugin config |
-| `velocitylogs.admin` | Full admin access |
+| `velocitylogs.reload` | Reload config |
+| `velocitylogs.admin` | Full admin |
 
-**OP players on backend servers automatically see logs.**
-
-## Config Files
-
-- Velocity: `plugins/velocity-logs/config.yml`
-- Spigot:   `plugins/VelocityLogs-Spigot/config.yml`
+**OPs on backend/proxy automatically see logs.**

@@ -7,8 +7,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Utility class for color handling.
- * Supports legacy color codes (&a, &c, &l, ...) and hex (&#RRGGBB).
+ * Color utility: legacy (&a, &c) + hex (&#RRGGBB).
  *
  * @author muvixo
  */
@@ -18,15 +17,9 @@ public final class ColorUtil {
 
     private ColorUtil() {}
 
-    /**
-     * Convert a legacy string (with & codes and &#RRGGBB) into an Adventure Component.
-     */
     public static Component color(String text) {
         if (text == null) return Component.empty();
-
-        // Replace &#RRGGBB with BungeeCord-style §x§R§R§G§G§B§B
         String withHex = translateHex(text);
-
         return LegacyComponentSerializer.legacyAmpersand().deserialize(withHex);
     }
 
@@ -46,9 +39,6 @@ public final class ColorUtil {
         return buffer.toString();
     }
 
-    /**
-     * Strip all color codes from a string.
-     */
     public static String strip(String text) {
         if (text == null) return "";
         return text.replaceAll("(?i)[&\u00a7][0-9A-FK-ORX]", "")

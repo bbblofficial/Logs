@@ -32,13 +32,16 @@ public class BackendMessageReceiver {
     private final Logger logger;
     private final Config config;
     private final OpPlayerManager opManager;
+    private final PermissionChecker permChecker;
     private final MinecraftChannelIdentifier channel;
 
-    public BackendMessageReceiver(ProxyServer server, Logger logger, Config config, OpPlayerManager opManager) {
+    public BackendMessageReceiver(ProxyServer server, Logger logger, Config config,
+                                  OpPlayerManager opManager, PermissionChecker permChecker) {
         this.server = server;
         this.logger = logger;
         this.config = config;
         this.opManager = opManager;
+        this.permChecker = permChecker;
         this.channel = MinecraftChannelIdentifier.from(config.getChannel());
     }
 
@@ -46,10 +49,13 @@ public class BackendMessageReceiver {
     public void onPluginMessage(PluginMessageEvent event) {
         if (!event.getIdentifier().equals(channel)) return;
 
-        // Mark as handled FIRST so Velocity doesn't forward it to the client
+        // Mark as handled FIRST so Velocity doesn't forward it
         event.setResult(PluginMessageEvent.ForwardResult.handled());
 
-        if (!(event.getSource() instanceof ServerConnection)) return;
+        // Only accept messages from a backend server connection
+        if (!(event.getSource() instanceof ServerConnection connection)) return;
+
+        String sourceServer = connection.getServerInfo().getName();
 
         try {
             ByteArrayDataInput in = ByteStreams.newDataInput(event.getData());
@@ -62,8 +68,12 @@ public class BackendMessageReceiver {
 
                     Optional<Player> opt = server.getPlayer(playerName);
                     if (opt.isPresent()) {
-                        if (isOp) opManager.markOp(opt.get().getUniqueId(), playerName);
-                        else      opManager.unmarkOp(opt.get().getUniqueId());
+                        if (isOp) opManager.markOp(opt.get().getUniqueId(), playerName, sourceServer);
+                        else      opManager.unmarkOp(opt.get().getUniqueId(), playerName);
+                    } else {
+                        if (config.isDebug()) {
+                            logger.warn("[OP-TRACK] OP_STATUS for {} but player not online", playerName);
+                        }
                     }
                     break;
                 }
@@ -75,10 +85,10 @@ public class BackendMessageReceiver {
                     break;
                 }
                 default:
-                    logger.warn("Unknown message type: {}", type);
+                    logger.warn("[VelocityLogs] Unknown message type: {}", type);
             }
         } catch (Exception e) {
-            logger.warn("Failed to decode plugin message", e);
+            logger.warn("[VelocityLogs] Failed to decode plugin message from {}", sourceServer, e);
         }
     }
 
@@ -99,18 +109,22 @@ public class BackendMessageReceiver {
         for (Player online : server.getAllPlayers()) {
             total++;
 
-            boolean hasPerm = online.hasPermission(config.getSeePermission());
-            boolean isOp = opManager.isOp(online.getUniqueId());
+            boolean canSee = permChecker.canSee(online);
             boolean isSelf = config.isShowToSelf() && online.getUsername().equalsIgnoreCase(playerName);
 
-            if (hasPerm || isOp || isSelf) {
+            if (canSee || isSelf) {
                 online.sendMessage(message);
                 sent++;
+            }
+
+            if (config.isDebug() && online.getUsername().equalsIgnoreCase(playerName)) {
+                logger.info("[DEBUG] Executor {} -> canSee={}, isSelf={}",
+                        playerName, canSee, isSelf);
             }
         }
 
         if (config.isLogToConsole()) {
-            logger.info("[{}@{}] /{}  (online: {}, sent: {}, ops: {})",
+            logger.info("[{}@{}] /{}  (online: {}, sent: {}, tracked-ops: {})",
                     playerName, serverName, command, total, sent, opManager.getOpCount());
         }
     }

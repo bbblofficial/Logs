@@ -17,7 +17,7 @@ import java.nio.file.Path;
 
 /**
  * VelocityLogs - receives command logs from Spigot backends and broadcasts them
- * to staff (permission holders + backend OPs).
+ * to staff (permission holders + backend OPs + proxy OPs).
  *
  * @author muvixo
  */
@@ -36,6 +36,7 @@ public class VelocityLogs {
 
     private Config config;
     private OpPlayerManager opManager;
+    private PermissionChecker permissionChecker;
     private BackendMessageReceiver receiver;
     private MinecraftChannelIdentifier channel;
 
@@ -61,12 +62,15 @@ public class VelocityLogs {
         this.opManager = new OpPlayerManager(server, logger);
         server.getEventManager().register(this, opManager);
 
+        // ---------- Permission checker ----------
+        this.permissionChecker = new PermissionChecker(config, opManager, logger);
+
         // ---------- Channel ----------
         this.channel = MinecraftChannelIdentifier.from(config.getChannel());
         server.getChannelRegistrar().register(channel);
 
         // ---------- Message receiver ----------
-        this.receiver = new BackendMessageReceiver(server, logger, config, opManager);
+        this.receiver = new BackendMessageReceiver(server, logger, config, opManager, permissionChecker);
         server.getEventManager().register(this, receiver);
 
         // ---------- /logs command ----------
@@ -76,7 +80,7 @@ public class VelocityLogs {
                         .aliases("cmdlogs", "commandlogs", "vlogs")
                         .plugin(this)
                         .build(),
-                new LogsCommand(server, logger, config, opManager)
+                new LogsCommand(server, logger, config, opManager, permissionChecker)
         );
 
         logger.info("===========================================");
@@ -84,6 +88,7 @@ public class VelocityLogs {
         logger.info("  Channel: {}", config.getChannel());
         logger.info("  See permission: {}", config.getSeePermission());
         logger.info("  Reload permission: {}", config.getReloadPermission());
+        logger.info("  Debug: {}", config.isDebug());
         logger.info("===========================================");
     }
 
