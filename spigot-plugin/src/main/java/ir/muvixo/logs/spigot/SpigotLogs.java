@@ -5,12 +5,6 @@ import com.google.common.io.ByteStreams;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
-/**
- * SpigotLogs - forwards every command executed by a player to the Velocity proxy.
- * Works on Minecraft 1.8.8 / 1.8.9.
- *
- * @author muvixo
- */
 public class SpigotLogs extends JavaPlugin {
 
     private Config config;
@@ -51,13 +45,21 @@ public class SpigotLogs extends JavaPlugin {
 
     /**
      * Sends the OP status of a player to the proxy.
+     * PUBLIC - called from CommandInterceptor.
      */
     public void sendOpStatus(Player player, boolean isOp) {
+        if (player == null || !player.isOnline()) return;
+
         ByteArrayDataOutput out = ByteStreams.newDataOutput();
         out.writeUTF("OP_STATUS");
         out.writeUTF(player.getName());
         out.writeUTF(Boolean.toString(isOp));
-        player.sendPluginMessage(this, config.getChannel(), out.toByteArray());
+
+        try {
+            player.sendPluginMessage(this, config.getChannel(), out.toByteArray());
+        } catch (Exception e) {
+            getLogger().warning("Failed to send OP_STATUS for " + player.getName() + ": " + e.getMessage());
+        }
     }
 
     public Config getPluginConfig() {
