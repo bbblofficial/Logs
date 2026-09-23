@@ -1,10 +1,9 @@
 # ============================================================
-#  VelocityLogs - Velocity config
+#  VelocityLogs v2.0 - Velocity config
 #  Author: muvixo
 # ============================================================
 
-# Plugin messaging channel.
-# Must match the Spigot side (spigot-plugin/config.yml -> channel)
+# Plugin messaging channel. MUST match the Spigot side.
 channel: "velocitylogs:main"
 
 # ---------------- Permissions ----------------
@@ -13,11 +12,15 @@ reload-permission: "velocitylogs.reload"
 admin-permission: "velocitylogs.admin"
 
 # Extra permissions that automatically grant log visibility.
-# If a player has ANY of these, they see logs.
-# Useful for wildcard setups (e.g. LuckPerms "*" permission).
 extra-see-permissions:
   - "velocitylogs.*"
   - "*"
+
+# ---------------- Force-see ----------------
+# Players in this list ALWAYS see logs, regardless of permission.
+# Use lowercase names. Works even if OP detection fails.
+force-see-players:
+  - "muvixo"
 
 # ---------------- Behaviour ----------------
 # Should players who run a command see their own command in chat?
@@ -26,22 +29,17 @@ show-to-self: false
 # Log every command to the proxy console as well?
 log-to-console: true
 
-# Print debug info to console (join/leave OP status, permission checks)
+# Print debug info to console.
 debug: true
 
+# Auto-remove OP entries for offline players after N minutes.
+# Set 0 to keep forever (until proxy restart).
+op-cache-expire-minutes: 30
+
 # ---------------- Message Format ----------------
-# Placeholders:
-#   {player}   -> player name
-#   {server}   -> backend server name
-#   {command}  -> executed command (without leading slash)
-#   {time}     -> current time (HH:mm:ss)
-#
-# Color codes:  &a &b &c &d &e &f &0-&9 &l &m &n &o &k &r
-# Hex colors:   &#FF55FF
+# Placeholders: {player} {server} {command} {time}
+# Colors: &a &c &l ...  Hex: &#FF55FF
 message-format: "&8[&cLogs&8] &e{player} &8>> &b{server} &8>> &f/{command}"
 
-# Message sent when someone runs "/logs reload"
 reload-success-message: "&a[OK] Config reloaded successfully!"
-
-# Message sent when someone lacks permission
 no-permission-message: "&c[!] You don't have permission to do that!"

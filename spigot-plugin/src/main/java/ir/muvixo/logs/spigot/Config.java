@@ -8,7 +8,7 @@ import java.util.Locale;
 import java.util.stream.Collectors;
 
 /**
- * Config wrapper for SpigotLogs.
+ * Config wrapper for SpigotLogs v2.0.
  *
  * @author muvixo
  */
@@ -53,12 +53,14 @@ public class Config {
         List<String> rawBlacklist = cfg.getStringList("blacklist");
         if (rawBlacklist == null) rawBlacklist = new ArrayList<>();
         this.blacklist = rawBlacklist.stream()
+                .filter(s -> s != null)
                 .map(s -> s.toLowerCase(Locale.ROOT).trim())
                 .collect(Collectors.toList());
 
         List<String> rawIgnored = cfg.getStringList("ignored-players");
         if (rawIgnored == null) rawIgnored = new ArrayList<>();
         this.ignoredPlayers = rawIgnored.stream()
+                .filter(s -> s != null)
                 .map(s -> s.toLowerCase(Locale.ROOT).trim())
                 .collect(Collectors.toList());
     }

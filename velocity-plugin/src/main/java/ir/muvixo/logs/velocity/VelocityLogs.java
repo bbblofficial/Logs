@@ -16,15 +16,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
- * VelocityLogs - receives command logs from Spigot backends and broadcasts them
- * to staff (permission holders + backend OPs + proxy OPs).
+ * VelocityLogs v2.0 - receives command logs from Spigot backends and broadcasts
+ * them to staff.
  *
  * @author muvixo
  */
 @Plugin(
         id = "velocity-logs",
         name = "VelocityLogs",
-        version = "1.0.0",
+        version = "2.0.0",
         description = "Broadcasts commands from backend Spigot servers to staff",
         authors = {"muvixo"}
 )
@@ -49,31 +49,28 @@ public class VelocityLogs {
 
     @Subscribe
     public void onProxyInitialize(ProxyInitializeEvent event) {
-        if (!Files.exists(dataDirectory)) {
-            try { Files.createDirectories(dataDirectory); }
-            catch (IOException e) { logger.error("Could not create data directory", e); }
+        try {
+            if (!Files.exists(dataDirectory)) {
+                Files.createDirectories(dataDirectory);
+            }
+        } catch (IOException e) {
+            logger.error("Could not create data directory", e);
         }
 
-        // ---------- Config ----------
         this.config = new Config(dataDirectory, logger);
         this.config.load();
 
-        // ---------- OP tracking ----------
-        this.opManager = new OpPlayerManager(server, logger);
+        this.opManager = new OpPlayerManager(server, logger, config);
         server.getEventManager().register(this, opManager);
 
-        // ---------- Permission checker ----------
         this.permissionChecker = new PermissionChecker(config, opManager, logger);
 
-        // ---------- Channel ----------
         this.channel = MinecraftChannelIdentifier.from(config.getChannel());
         server.getChannelRegistrar().register(channel);
 
-        // ---------- Message receiver ----------
         this.receiver = new BackendMessageReceiver(server, logger, config, opManager, permissionChecker);
         server.getEventManager().register(this, receiver);
 
-        // ---------- /logs command ----------
         CommandManager cm = server.getCommandManager();
         cm.register(
                 cm.metaBuilder("logs")
@@ -84,18 +81,18 @@ public class VelocityLogs {
         );
 
         logger.info("===========================================");
-        logger.info("  VelocityLogs v1.0.0 by muvixo");
+        logger.info("  VelocityLogs v2.0.0 by muvixo");
         logger.info("  Channel: {}", config.getChannel());
         logger.info("  See permission: {}", config.getSeePermission());
-        logger.info("  Reload permission: {}", config.getReloadPermission());
         logger.info("  Debug: {}", config.isDebug());
+        logger.info("  Force-see players: {}", config.getForceSeePlayers());
         logger.info("===========================================");
     }
 
     @Subscribe
     public void onProxyShutdown(ProxyShutdownEvent event) {
         if (channel != null) {
-            server.getChannelRegistrar().unregister(channel);
+            try { server.getChannelRegistrar().unregister(channel); } catch (Exception ignored) {}
         }
         logger.info("VelocityLogs disabled.");
     }

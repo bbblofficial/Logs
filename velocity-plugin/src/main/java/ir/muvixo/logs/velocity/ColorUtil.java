@@ -38,10 +38,4 @@ public final class ColorUtil {
         matcher.appendTail(buffer);
         return buffer.toString();
     }
-
-    public static String strip(String text) {
-        if (text == null) return "";
-        return text.replaceAll("(?i)[&\u00a7][0-9A-FK-ORX]", "")
-                   .replaceAll("&#[A-Fa-f0-9]{6}", "");
-    }
 }

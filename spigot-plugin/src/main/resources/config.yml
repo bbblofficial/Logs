@@ -1,29 +1,25 @@
 # ============================================================
-#  VelocityLogs-Spigot - backend config
+#  VelocityLogs-Spigot v2.0 - backend config
 #  Author: muvixo
 # ============================================================
 
-# Plugin messaging channel.
-# Must match the Velocity side (velocity-plugin/config.yml -> channel)
+# Plugin messaging channel. MUST match the Velocity side.
 channel: "velocitylogs:main"
 
-# Name of this backend server, as it appears in Velocity logs.
-# Leave empty to auto-detect from server.properties / port.
+# Name of this backend server.
+# Leave empty to auto-detect.
 server-name: ""
 
 # Send commands to the proxy even for OP players?
 log-ops: true
 
-# Send OP status to the proxy on player join?
-# (Required for automatic OP detection on Velocity)
+# Send OP status to the proxy on player join AND with every command?
 report-op-status: true
 
-# Also report OP status periodically (every N minutes) as a safety net.
-# Set 0 to disable.
+# Also report OP status periodically (safety net).
 op-status-interval-minutes: 5
 
 # Hide these commands from being forwarded.
-# Case-insensitive, without leading slash.
 blacklist:
   - "login"
   - "register"

@@ -14,13 +14,17 @@ import org.slf4j.Logger;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
- * Receives plugin messages from Spigot backends and broadcasts them to staff.
+ * Receives plugin messages from Spigot backends.
  *
- * Message types:
- *   OP_STATUS  -> [type] [playerName] [true/false]
- *   CMD        -> [type] [playerName] [serverName] [command]
+ * v2.0 message protocol:
+ *   OP_STATUS -> "OP_STATUS" | uuid | name | server | isOp
+ *   CMD       -> "CMD"       | uuid | name | server | isOp | command
+ *
+ * The OP flag is included in every CMD message, so OP detection works
+ * even if the join-time OP_STATUS message was lost.
  *
  * @author muvixo
  */
@@ -48,44 +52,40 @@ public class BackendMessageReceiver {
     @Subscribe
     public void onPluginMessage(PluginMessageEvent event) {
         if (!event.getIdentifier().equals(channel)) return;
-
-        // Mark as handled FIRST so Velocity doesn't forward it
         event.setResult(PluginMessageEvent.ForwardResult.handled());
 
-        // Only accept messages from a backend server connection
         if (!(event.getSource() instanceof ServerConnection connection)) return;
-
         String sourceServer = connection.getServerInfo().getName();
 
         try {
             ByteArrayDataInput in = ByteStreams.newDataInput(event.getData());
             String type = in.readUTF();
 
-            switch (type) {
-                case "OP_STATUS": {
-                    String playerName = in.readUTF();
-                    boolean isOp = Boolean.parseBoolean(in.readUTF());
+            if ("OP_STATUS".equals(type)) {
+                UUID uuid = UUID.fromString(in.readUTF());
+                String name = in.readUTF();
+                String serverName = in.readUTF();
+                boolean isOp = Boolean.parseBoolean(in.readUTF());
 
-                    Optional<Player> opt = server.getPlayer(playerName);
-                    if (opt.isPresent()) {
-                        if (isOp) opManager.markOp(opt.get().getUniqueId(), playerName, sourceServer);
-                        else      opManager.unmarkOp(opt.get().getUniqueId(), playerName);
-                    } else {
-                        if (config.isDebug()) {
-                            logger.warn("[OP-TRACK] OP_STATUS for {} but player not online", playerName);
-                        }
-                    }
-                    break;
+                if (isOp) opManager.markOp(uuid, name, serverName);
+                else      opManager.unmarkOp(uuid, name);
+
+                if (config.isDebug()) {
+                    logger.info("[OP-TRACK] {} -> {} (from {})", name, isOp, serverName);
                 }
-                case "CMD": {
-                    String playerName = in.readUTF();
-                    String serverName = in.readUTF();
-                    String command = in.readUTF();
-                    broadcast(playerName, serverName, command);
-                    break;
-                }
-                default:
-                    logger.warn("[VelocityLogs] Unknown message type: {}", type);
+            } else if ("CMD".equals(type)) {
+                UUID uuid = UUID.fromString(in.readUTF());
+                String name = in.readUTF();
+                String serverName = in.readUTF();
+                boolean isOp = Boolean.parseBoolean(in.readUTF());
+                String command = in.readUTF();
+
+                // Refresh OP status from every command (bulletproof)
+                if (isOp) opManager.markOp(uuid, name, serverName);
+
+                broadcast(name, serverName, command);
+            } else {
+                logger.warn("[VelocityLogs] Unknown message type: {}", type);
             }
         } catch (Exception e) {
             logger.warn("[VelocityLogs] Failed to decode plugin message from {}", sourceServer, e);
@@ -94,32 +94,28 @@ public class BackendMessageReceiver {
 
     private void broadcast(String playerName, String serverName, String command) {
         String time = LocalTime.now().format(TIME_FORMAT);
-
         String raw = config.getMessageFormat()
                 .replace("{player}", playerName)
                 .replace("{server}", serverName)
                 .replace("{command}", command)
                 .replace("{time}", time);
-
         Component message = ColorUtil.color(raw);
 
-        int total = 0;
-        int sent = 0;
-
+        int total = 0, sent = 0;
         for (Player online : server.getAllPlayers()) {
             total++;
-
             boolean canSee = permChecker.canSee(online);
-            boolean isSelf = config.isShowToSelf() && online.getUsername().equalsIgnoreCase(playerName);
+            boolean isSelf = config.isShowToSelf()
+                    && online.getUsername().equalsIgnoreCase(playerName);
 
             if (canSee || isSelf) {
                 online.sendMessage(message);
                 sent++;
             }
-
             if (config.isDebug() && online.getUsername().equalsIgnoreCase(playerName)) {
-                logger.info("[DEBUG] Executor {} -> canSee={}, isSelf={}",
-                        playerName, canSee, isSelf);
+                logger.info("[DEBUG] Executor {} -> canSee={}, isSelf={}, opTracked={}",
+                        playerName, canSee, isSelf,
+                        opManager.isOp(online.getUniqueId()));
             }
         }
 
