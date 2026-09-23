@@ -2,6 +2,7 @@ package ir.muvixo.logs.velocity;
 
 import org.slf4j.Logger;
 import org.spongepowered.configurate.CommentedConfigurationNode;
+import org.spongepowered.configurate.serialize.SerializationException;
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
 import java.io.IOException;
@@ -67,11 +68,11 @@ public class Config {
         this.reloadPermission = root.node("reload-permission").getString("velocitylogs.reload");
         this.adminPermission = root.node("admin-permission").getString("velocitylogs.admin");
 
-        List<String> extras = root.node("extra-see-permissions").getList(String.class, new ArrayList<>());
-        this.extraSeePermissions = (extras == null) ? new ArrayList<>() : extras;
+        // --- FIX: getList() throws SerializationException, wrap it ---
+        List<String> extras = safeGetList(root, "extra-see-permissions");
+        this.extraSeePermissions = extras;
 
-        List<String> force = root.node("force-see-players").getList(String.class, new ArrayList<>());
-        if (force == null) force = new ArrayList<>();
+        List<String> force = safeGetList(root, "force-see-players");
         this.forceSeePlayers = force.stream()
                 .filter(s -> s != null && !s.isEmpty())
                 .map(s -> s.toLowerCase(Locale.ROOT).trim())
@@ -88,6 +89,19 @@ public class Config {
                 "&a[OK] Config reloaded successfully!");
         this.noPermissionMessage = root.node("no-permission-message").getString(
                 "&c[!] You don't have permission to do that!");
+    }
+
+    /**
+     * Safely reads a list of strings from config, swallowing SerializationException.
+     */
+    private List<String> safeGetList(CommentedConfigurationNode root, String key) {
+        try {
+            List<String> list = root.node(key).getList(String.class);
+            return list == null ? new ArrayList<>() : list;
+        } catch (SerializationException e) {
+            logger.warn("Could not read list '{}' from config: {}", key, e.getMessage());
+            return new ArrayList<>();
+        }
     }
 
     public String getChannel() { return channel; }
