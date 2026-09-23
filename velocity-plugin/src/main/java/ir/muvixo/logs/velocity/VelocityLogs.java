@@ -1,0 +1,84 @@
+package ir.muvixo.logs.velocity;
+
+import com.google.inject.Inject;
+import com.velocitypowered.api.command.CommandManager;
+import com.velocitypowered.api.event.Subscribe;
+import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
+import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
+import com.velocitypowered.api.plugin.Plugin;
+import com.velocitypowered.api.plugin.annotation.DataDirectory;
+import com.velocitypowered.api.proxy.ProxyServer;
+import com.velocitypowered.api.proxy.messages.MinecraftChannelIdentifier;
+import org.slf4j.Logger;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+/**
+ * VelocityLogs - receives command logs from Spigot 1.8 backend servers
+ * and broadcasts them to staff.
+ *
+ * @author muvixo
+ */
+@Plugin(
+        id = "velocity-logs",
+        name = "VelocityLogs",
+        version = "1.0.0",
+        description = "Broadcasts commands received from backend Spigot servers to staff",
+        authors = {"muvixo"}
+)
+public class VelocityLogs {
+
+    private final ProxyServer server;
+    private final Logger logger;
+    private final Path dataDirectory;
+
+    private Config config;
+    private MinecraftChannelIdentifier channel;
+
+    @Inject
+    public VelocityLogs(ProxyServer server, Logger logger, @DataDirectory Path dataDirectory) {
+        this.server = server;
+        this.logger = logger;
+        this.dataDirectory = dataDirectory;
+    }
+
+    @Subscribe
+    public void onProxyInitialize(ProxyInitializeEvent event) {
+        if (!Files.exists(dataDirectory)) {
+            try { Files.createDirectories(dataDirectory); }
+            catch (IOException e) { logger.error("Could not create data directory", e); }
+        }
+
+        this.config = new Config(dataDirectory, logger);
+        this.config.load();
+
+        this.channel = MinecraftChannelIdentifier.from(config.getChannel());
+        server.getChannelRegistrar().register(channel);
+
+        server.getEventManager().register(this, new BackendMessageReceiver(server, logger, config));
+
+        CommandManager commandManager = server.getCommandManager();
+        commandManager.register(
+                commandManager.metaBuilder("logs")
+                        .aliases("cmdlogs", "commandlogs", "vlogs")
+                        .plugin(this)
+                        .build(),
+                new LogsCommand(server, config)
+        );
+
+        logger.info("===========================================");
+        logger.info("  VelocityLogs v1.0.0 by muvixo");
+        logger.info("  Channel: {}", config.getChannel());
+        logger.info("===========================================");
+    }
+
+    @Subscribe
+    public void onProxyShutdown(ProxyShutdownEvent event) {
+        if (channel != null) {
+            server.getChannelRegistrar().unregister(channel);
+        }
+        logger.info("VelocityLogs disabled.");
+    }
+}

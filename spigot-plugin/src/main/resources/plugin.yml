@@ -1,0 +1,6 @@
+name: VelocityLogs-Spigot
+main: ir.muvixo.logs.spigot.SpigotLogs
+version: ${project.version}
+author: muvixo
+description: Forwards every command executed by players to the Velocity proxy
+api-version: 1.8

@@ -1,0 +1,14 @@
+# VelocityLogs-Spigot Configuration
+# Author: muvixo
+
+# Plugin messaging channel (must match the Velocity side)
+channel: "velocitylogs:main"
+
+# Send commands to proxy even for OP players?
+log-ops: true
+
+# Hide these commands from being forwarded
+blacklist:
+  - "login"
+  - "register"
+  - "changepassword"

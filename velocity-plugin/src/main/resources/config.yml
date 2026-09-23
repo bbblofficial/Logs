@@ -1,0 +1,15 @@
+# VelocityLogs Configuration
+# Author: muvixo
+
+# The plugin messaging channel (must match the Spigot plugin)
+channel: "velocitylogs:main"
+
+# Format shown to staff.
+# Placeholders: {player}, {server}, {command}, {time}
+message-format: "&8[&cLogs&8] &e{player} &8» &b{server} &8» &f/{command}"
+
+# Permission required to see logs
+see-permission: "velocitylogs.see"
+
+# Log messages to proxy console too?
+log-to-console: true
