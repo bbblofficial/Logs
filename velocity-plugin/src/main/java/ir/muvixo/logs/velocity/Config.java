@@ -2,6 +2,7 @@ package ir.muvixo.logs.velocity;
 
 import org.slf4j.Logger;
 import org.spongepowered.configurate.CommentedConfigurationNode;
+import org.spongepowered.configurate.serialize.SerializationException;
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
 import java.io.IOException;
@@ -9,6 +10,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -63,8 +65,16 @@ public class Config {
         this.reloadPermission = root.node("reload-permission").getString("velocitylogs.reload");
         this.adminPermission = root.node("admin-permission").getString("velocitylogs.admin");
 
-        List<String> extras = root.node("extra-see-permissions").getList(String.class, new ArrayList<>());
-        if (extras == null) extras = new ArrayList<>();
+        // ---------- extra-see-permissions ----------
+        // Wrapped in try/catch because getList throws SerializationException
+        List<String> extras;
+        try {
+            extras = root.node("extra-see-permissions").getList(String.class, new ArrayList<>());
+        } catch (SerializationException e) {
+            logger.warn("Could not read extra-see-permissions, using defaults", e);
+            extras = new ArrayList<>();
+        }
+        if (extras == null) extras = Collections.emptyList();
         this.extraSeePermissions = extras;
 
         this.showToSelf = root.node("show-to-self").getBoolean(false);
