@@ -1,14 +1,35 @@
-# VelocityLogs-Spigot Configuration
-# Author: muvixo
+# ============================================================
+#  VelocityLogs-Spigot - backend config
+#  Author: muvixo
+# ============================================================
 
-# Plugin messaging channel (must match the Velocity side)
+# Plugin messaging channel.
+# ⚠ Must match the Velocity side (velocity-plugin/config.yml -> channel)
 channel: "velocitylogs:main"
 
-# Send commands to proxy even for OP players?
+# Name of this backend server, as it will appear in Velocity logs.
+# Leave empty to auto-detect from server.properties / port.
+server-name: ""
+
+# Send commands to the proxy even for OP players?
 log-ops: true
 
-# Hide these commands from being forwarded
+# Send OP status to the proxy on player join?
+# (Needed so OP players automatically see logs on the proxy)
+report-op-status: true
+
+# Hide these commands from being forwarded to the proxy.
+# Case-insensitive, without leading slash.
+# Wildcards are NOT supported - use exact command names.
 blacklist:
   - "login"
   - "register"
   - "changepassword"
+  - "l"
+  - "msg"
+
+# Ignore commands from these players entirely.
+# Case-insensitive. Use exact names.
+ignored-players: []
+#  - "ConsoleBot"
+#  - "TestAccount"

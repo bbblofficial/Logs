@@ -16,8 +16,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
- * VelocityLogs - receives command logs from Spigot 1.8 backend servers
- * and broadcasts them to staff.
+ * VelocityLogs - receives command logs from Spigot backends and broadcasts them
+ * to staff (permission holders + backend OPs).
  *
  * @author muvixo
  */
@@ -25,7 +25,7 @@ import java.nio.file.Path;
         id = "velocity-logs",
         name = "VelocityLogs",
         version = "1.0.0",
-        description = "Broadcasts commands received from backend Spigot servers to staff",
+        description = "Broadcasts commands from backend Spigot servers to staff",
         authors = {"muvixo"}
 )
 public class VelocityLogs {
@@ -35,6 +35,8 @@ public class VelocityLogs {
     private final Path dataDirectory;
 
     private Config config;
+    private OpPlayerManager opManager;
+    private BackendMessageReceiver receiver;
     private MinecraftChannelIdentifier channel;
 
     @Inject
@@ -51,26 +53,37 @@ public class VelocityLogs {
             catch (IOException e) { logger.error("Could not create data directory", e); }
         }
 
+        // ---------- Config ----------
         this.config = new Config(dataDirectory, logger);
         this.config.load();
 
+        // ---------- OP tracking ----------
+        this.opManager = new OpPlayerManager(server, logger);
+        server.getEventManager().register(this, opManager);
+
+        // ---------- Channel ----------
         this.channel = MinecraftChannelIdentifier.from(config.getChannel());
         server.getChannelRegistrar().register(channel);
 
-        server.getEventManager().register(this, new BackendMessageReceiver(server, logger, config));
+        // ---------- Message receiver ----------
+        this.receiver = new BackendMessageReceiver(server, logger, config, opManager);
+        server.getEventManager().register(this, receiver);
 
-        CommandManager commandManager = server.getCommandManager();
-        commandManager.register(
-                commandManager.metaBuilder("logs")
+        // ---------- /logs command ----------
+        CommandManager cm = server.getCommandManager();
+        cm.register(
+                cm.metaBuilder("logs")
                         .aliases("cmdlogs", "commandlogs", "vlogs")
                         .plugin(this)
                         .build(),
-                new LogsCommand(server, config)
+                new LogsCommand(server, logger, config, opManager)
         );
 
         logger.info("===========================================");
         logger.info("  VelocityLogs v1.0.0 by muvixo");
         logger.info("  Channel: {}", config.getChannel());
+        logger.info("  See permission: {}", config.getSeePermission());
+        logger.info("  Reload permission: {}", config.getReloadPermission());
         logger.info("===========================================");
     }
 
@@ -81,4 +94,6 @@ public class VelocityLogs {
         }
         logger.info("VelocityLogs disabled.");
     }
+
+    public Config getConfig() { return config; }
 }

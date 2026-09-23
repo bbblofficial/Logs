@@ -1,15 +1,38 @@
-# VelocityLogs Configuration
-# Author: muvixo
+# ============================================================
+#  VelocityLogs - Velocity config
+#  Author: muvixo
+# ============================================================
 
-# The plugin messaging channel (must match the Spigot plugin)
+# Plugin messaging channel.
+# ⚠ Must match the Spigot side (spigot-plugin/config.yml -> channel)
 channel: "velocitylogs:main"
 
-# Format shown to staff.
-# Placeholders: {player}, {server}, {command}, {time}
-message-format: "&8[&cLogs&8] &e{player} &8» &b{server} &8» &f/{command}"
-
-# Permission required to see logs
+# Permission required to see command logs.
+# OP players on backend servers automatically see logs regardless of this.
 see-permission: "velocitylogs.see"
 
-# Log messages to proxy console too?
+# Permission required to run "/logs reload"
+reload-permission: "velocitylogs.reload"
+
+# Should players who run a command see their own command in chat?
+show-to-self: false
+
+# Log every command to the proxy console as well?
 log-to-console: true
+
+# ---------------- Message Format ----------------
+# Placeholders:
+#   {player}   -> player name
+#   {server}   -> backend server name
+#   {command}  -> executed command (without leading slash)
+#   {time}     -> current time (HH:mm:ss)
+#
+# Color codes:  &a &b &c &d &e &f &0-&9 &l &m &n &o &k &r
+# Hex colors:   &#FF55FF
+message-format: "&8[&cLogs&8] &e{player} &8» &b{server} &8» &f/{command}"
+
+# Message sent when someone runs "/logs reload"
+reload-success-message: "&a✔ Config reloaded successfully!"
+
+# Message sent when someone lacks permission for "/logs reload"
+no-permission-message: "&c✘ You don't have permission to do that!"

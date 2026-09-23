@@ -9,19 +9,18 @@ import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.ServerConnection;
 import com.velocitypowered.api.proxy.messages.MinecraftChannelIdentifier;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.slf4j.Logger;
 
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Optional;
 
 /**
  * Receives plugin messages from Spigot backends and broadcasts them to staff.
  *
- * Message format (UTF):
- *   [0] String  playerName
- *   [1] String  serverName
- *   [2] String  command (without leading slash)
+ * Message types:
+ *   OP_STATUS  -> [type] [playerName] [true/false]
+ *   CMD        -> [type] [playerName] [serverName] [command]
  *
  * @author muvixo
  */
@@ -32,12 +31,14 @@ public class BackendMessageReceiver {
     private final ProxyServer server;
     private final Logger logger;
     private final Config config;
+    private final OpPlayerManager opManager;
     private final MinecraftChannelIdentifier channel;
 
-    public BackendMessageReceiver(ProxyServer server, Logger logger, Config config) {
+    public BackendMessageReceiver(ProxyServer server, Logger logger, Config config, OpPlayerManager opManager) {
         this.server = server;
         this.logger = logger;
         this.config = config;
+        this.opManager = opManager;
         this.channel = MinecraftChannelIdentifier.from(config.getChannel());
     }
 
@@ -45,19 +46,39 @@ public class BackendMessageReceiver {
     public void onPluginMessage(PluginMessageEvent event) {
         if (!event.getIdentifier().equals(channel)) return;
 
-        if (!(event.getSource() instanceof ServerConnection connection)) return;
-
+        // Mark as handled FIRST so Velocity doesn't forward it to the client
         event.setResult(PluginMessageEvent.ForwardResult.handled());
+
+        if (!(event.getSource() instanceof ServerConnection)) return;
 
         try {
             ByteArrayDataInput in = ByteStreams.newDataInput(event.getData());
-            String playerName = in.readUTF();
-            String serverName = in.readUTF();
-            String command = in.readUTF();
+            String type = in.readUTF();
 
-            broadcast(playerName, serverName, command);
+            switch (type) {
+                case "OP_STATUS": {
+                    String playerName = in.readUTF();
+                    boolean isOp = Boolean.parseBoolean(in.readUTF());
+
+                    Optional<Player> opt = server.getPlayer(playerName);
+                    if (opt.isPresent()) {
+                        if (isOp) opManager.markOp(opt.get().getUniqueId(), playerName);
+                        else      opManager.unmarkOp(opt.get().getUniqueId());
+                    }
+                    break;
+                }
+                case "CMD": {
+                    String playerName = in.readUTF();
+                    String serverName = in.readUTF();
+                    String command = in.readUTF();
+                    broadcast(playerName, serverName, command);
+                    break;
+                }
+                default:
+                    logger.warn("Unknown message type: {}", type);
+            }
         } catch (Exception e) {
-            logger.warn("Failed to decode command-log message", e);
+            logger.warn("Failed to decode plugin message", e);
         }
     }
 
@@ -70,16 +91,27 @@ public class BackendMessageReceiver {
                 .replace("{command}", command)
                 .replace("{time}", time);
 
-        Component message = LegacyComponentSerializer.legacyAmpersand().deserialize(raw);
+        Component message = ColorUtil.color(raw);
+
+        int total = 0;
+        int sent = 0;
 
         for (Player online : server.getAllPlayers()) {
-            if (online.hasPermission(config.getSeePermission())) {
+            total++;
+
+            boolean hasPerm = online.hasPermission(config.getSeePermission());
+            boolean isOp = opManager.isOp(online.getUniqueId());
+            boolean isSelf = config.isShowToSelf() && online.getUsername().equalsIgnoreCase(playerName);
+
+            if (hasPerm || isOp || isSelf) {
                 online.sendMessage(message);
+                sent++;
             }
         }
 
         if (config.isLogToConsole()) {
-            logger.info("[{}@{}] /{}", playerName, serverName, command);
+            logger.info("[{}@{}] /{}  (online: {}, sent: {}, ops: {})",
+                    playerName, serverName, command, total, sent, opManager.getOpCount());
         }
     }
 }

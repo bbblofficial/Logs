@@ -18,15 +18,27 @@ public class SpigotLogs extends JavaPlugin {
         this.config = new Config(this);
         this.config.load();
 
+        // Register the outgoing plugin messaging channel
         getServer().getMessenger().registerOutgoingPluginChannel(this, config.getChannel());
+
+        // Register the event listener
         getServer().getPluginManager().registerEvents(new CommandInterceptor(this, config), this);
 
-        getLogger().info("VelocityLogs-Spigot enabled. Channel: " + config.getChannel());
+        getLogger().info("===========================================");
+        getLogger().info("  VelocityLogs-Spigot v" + getDescription().getVersion());
+        getLogger().info("  Channel: " + config.getChannel());
+        getLogger().info("  Server name: " + config.getServerName());
+        getLogger().info("  Report OP status: " + config.isReportOpStatus());
+        getLogger().info("===========================================");
     }
 
     @Override
     public void onDisable() {
         getServer().getMessenger().unregisterOutgoingPluginChannel(this);
         getLogger().info("VelocityLogs-Spigot disabled.");
+    }
+
+    public Config getPluginConfig() {
+        return config;
     }
 }
