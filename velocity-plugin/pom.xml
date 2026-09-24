@@ -1,28 +1,45 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>ir.muvixo</groupId>
-        <artifactId>velocity-logs-parent</artifactId>
-        <version>2.0.0</version>
-    </parent>
-
-    <artifactId>velocity-logs-velocity</artifactId>
+    <groupId>com.muvixo</groupId>
+    <artifactId>NickPlugin</artifactId>
+    <version>1.0.0</version>
     <packaging>jar</packaging>
-    <name>VelocityLogs (Velocity)</name>
+
+    <name>NickPlugin</name>
+    <description>Hypixel-style Nick plugin for Spigot 1.8.8 - Author: Muvixo</description>
+
+    <properties>
+        <java.version>1.8</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <!-- CRITICAL: Spigot Repository -->
+    <repositories>
+        <repository>
+            <id>spigotmc-repo</id>
+            <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
+        </repository>
+        <repository>
+            <id>sonatype</id>
+            <url>https://oss.sonatype.org/content/groups/public/</url>
+        </repository>
+    </repositories>
 
     <dependencies>
+        <!-- 
+             Spigot API includes BungeeCord Chat internally.
+             No separate bungeecord-chat dependency is needed or available publicly.
+        -->
         <dependency>
-            <groupId>com.velocitypowered</groupId>
-            <artifactId>velocity-api</artifactId>
-            <version>3.3.0-SNAPSHOT</version>
+            <groupId>org.spigotmc</groupId>
+            <artifactId>spigot-api</artifactId>
+            <version>1.8.8-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.spongepowered</groupId>
-            <artifactId>configurate-yaml</artifactId>
-            <version>4.1.2</version>
         </dependency>
     </dependencies>
 
@@ -32,69 +49,18 @@
             <resource>
                 <directory>src/main/resources</directory>
                 <filtering>true</filtering>
-                <includes>
-                    <include>velocity-plugin.json</include>
-                </includes>
-            </resource>
-            <resource>
-                <directory>src/main/resources</directory>
-                <filtering>false</filtering>
-                <excludes>
-                    <exclude>velocity-plugin.json</exclude>
-                </excludes>
             </resource>
         </resources>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
                 <configuration>
-                    <release>17</release>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                    <encoding>UTF-8</encoding>
                 </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals><goal>shade</goal></goals>
-                        <configuration>
-                            <createDependencyReducedPom>false</createDependencyReducedPom>
-
-                            <filters>
-                                <filter>
-                                    <artifact>*:*</artifact>
-                                    <excludes>
-                                        <exclude>META-INF/*.SF</exclude>
-                                        <exclude>META-INF/*.DSA</exclude>
-                                        <exclude>META-INF/*.RSA</exclude>
-                                        <exclude>META-INF/*.EC</exclude>
-                                        <exclude>META-INF/MANIFEST.MF</exclude>
-                                        <exclude>module-info.class</exclude>
-                                        <exclude>META-INF/versions/*/module-info.class</exclude>
-                                    </excludes>
-                                </filter>
-                            </filters>
-
-                            <relocations>
-                                <relocation>
-                                    <pattern>org.spongepowered.configurate</pattern>
-                                    <shadedPattern>ir.muvixo.logs.libs.configurate</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>io.leangen.geantyref</pattern>
-                                    <shadedPattern>ir.muvixo.logs.libs.geantyref</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>org.yaml.snakeyaml</pattern>
-                                    <shadedPattern>ir.muvixo.logs.libs.snakeyaml</shadedPattern>
-                                </relocation>
-                            </relocations>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
     </build>
