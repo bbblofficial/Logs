@@ -26,14 +26,6 @@
                 </exclusion>
             </exclusions>
         </dependency>
-
-        <!-- Working replacement for the excluded chat library -->
-        <dependency>
-            <groupId>net.md-5</groupId>
-            <artifactId>bungeecord-chat</artifactId>
-            <version>1.16-R0.4</version>
-            <scope>provided</scope>
-        </dependency>
     </dependencies>
 
     <build>
