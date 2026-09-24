@@ -1,0 +1,3038 @@
+C:\Users\nasle javan\Downloads\r48jd4j98r498ej-main\r48jd4j98r498ej-main\logs\velocity-logs/
+
+├── .git
+│   ├── COMMIT_EDITMSG
+  Initial commit
+│   ├── HEAD
+  ref: refs/heads/main
+│   ├── config
+  [core]
+  	repositoryformatversion = 0
+  	filemode = false
+  	bare = false
+  	logallrefupdates = true
+  	symlinks = false
+  	ignorecase = true
+  [remote "origin"]
+  	url = https://github.com/bbblofficial/Logs
+  	fetch = +refs/heads/*:refs/remotes/origin/*
+  [branch "main"]
+  	remote = origin
+  	merge = refs/heads/main
+│   ├── description
+  Unnamed repository; edit this file 'description' to name the repository.
+│   ├── hooks
+│   │   ├── applypatch-msg.sample
+  #!/bin/sh
+  #
+  # An example hook script to check the commit log message taken by
+  # applypatch from an e-mail message.
+  #
+  # The hook should exit with non-zero status after issuing an
+  # appropriate message if it wants to stop the commit.  The hook is
+  # allowed to edit the commit message file.
+  #
+  # To enable this hook, rename this file to "applypatch-msg".
+  
+  . git-sh-setup
+  commitmsg="$(git rev-parse --git-path hooks/commit-msg)"
+  test -x "$commitmsg" && exec "$commitmsg" ${1+"$@"}
+  :
+│   │   ├── commit-msg.sample
+  #!/bin/sh
+  #
+  # An example hook script to check the commit log message.
+  # Called by "git commit" with one argument, the name of the file
+  # that has the commit message.  The hook should exit with non-zero
+  # status after issuing an appropriate message if it wants to stop the
+  # commit.  The hook is allowed to edit the commit message file.
+  #
+  # To enable this hook, rename this file to "commit-msg".
+  
+  # Uncomment the below to add a Signed-off-by line to the message.
+  # Doing this in a hook is a bad idea in general, but the prepare-commit-msg
+  # hook is more suited to it.
+  #
+  # SOB=$(git var GIT_AUTHOR_IDENT | sed -n 's/^\(.*>\).*$/Signed-off-by: \1/p')
+  # grep -qs "^$SOB" "$1" || echo "$SOB" >> "$1"
+  
+  # This example catches duplicate Signed-off-by lines.
+  
+  test "" = "$(grep '^Signed-off-by: ' "$1" |
+  	 sort | uniq -c | sed -e '/^[ 	]*1[ 	]/d')" || {
+  	echo >&2 Duplicate Signed-off-by lines.
+  	exit 1
+  }
+│   │   ├── fsmonitor-watchman.sample
+  #!/usr/bin/perl
+  
+  use strict;
+  use warnings;
+  use IPC::Open2;
+  
+  # An example hook script to integrate Watchman
+  # (https://facebook.github.io/watchman/) with git to speed up detecting
+  # new and modified files.
+  #
+  # The hook is passed a version (currently 2) and last update token
+  # formatted as a string and outputs to stdout a new update token and
+  # all files that have been modified since the update token. Paths must
+  # be relative to the root of the working tree and separated by a single NUL.
+  #
+  # To enable this hook, rename this file to "query-watchman" and set
+  # 'git config core.fsmonitor .git/hooks/query-watchman'
+  #
+  my ($version, $last_update_token) = @ARGV;
+  
+  # Uncomment for debugging
+  # print STDERR "$0 $version $last_update_token\n";
+  
+  # Check the hook interface version
+  if ($version ne 2) {
+  	die "Unsupported query-fsmonitor hook version '$version'.\n" .
+  	    "Falling back to scanning...\n";
+  }
+  
+  my $git_work_tree = get_working_dir();
+  
+  my $retry = 1;
+  
+  my $json_pkg;
+  eval {
+  	require JSON::XS;
+  	$json_pkg = "JSON::XS";
+  	1;
+  } or do {
+  	require JSON::PP;
+  	$json_pkg = "JSON::PP";
+  };
+  
+  launch_watchman();
+  
+  sub launch_watchman {
+  	my $o = watchman_query();
+  	if (is_work_tree_watched($o)) {
+  		output_result($o->{clock}, @{$o->{files}});
+  	}
+  }
+  
+  sub output_result {
+  	my ($clockid, @files) = @_;
+  
+  	# Uncomment for debugging watchman output
+  	# open (my $fh, ">", ".git/watchman-output.out");
+  	# binmode $fh, ":utf8";
+  	# print $fh "$clockid\n@files\n";
+  	# close $fh;
+  
+  	binmode STDOUT, ":utf8";
+  	print $clockid;
+  	print "\0";
+  	local $, = "\0";
+  	print @files;
+  }
+  
+  sub watchman_clock {
+  	my $response = qx/watchman clock "$git_work_tree"/;
+  	die "Failed to get clock id on '$git_work_tree'.\n" .
+  		"Falling back to scanning...\n" if $? != 0;
+  
+  	return $json_pkg->new->utf8->decode($response);
+  }
+  
+  sub watchman_query {
+  	my $pid = open2(\*CHLD_OUT, \*CHLD_IN, 'watchman -j --no-pretty')
+  	or die "open2() failed: $!\n" .
+  	"Falling back to scanning...\n";
+  
+  	# In the query expression below we're asking for names of files that
+  	# changed since $last_update_token but not from the .git folder.
+  	#
+  	# To accomplish this, we're using the "since" generator to use the
+  	# recency index to select candidate nodes and "fields" to limit the
+  	# output to file names only. Then we're using the "expression" term to
+  	# further constrain the results.
+  	my $last_update_line = "";
+  	if (substr($last_update_token, 0, 1) eq "c") {
+  		$last_update_token = "\"$last_update_token\"";
+  		$last_update_line = qq[\n"since": $last_update_token,];
+  	}
+  	my $query = <<"	END";
+  		["query", "$git_work_tree", {$last_update_line
+  			"fields": ["name"],
+  			"expression": ["not", ["dirname", ".git"]]
+  		}]
+  	END
+  
+  	# Uncomment for debugging the watchman query
+  	# open (my $fh, ">", ".git/watchman-query.json");
+  	# print $fh $query;
+  	# close $fh;
+  
+  	print CHLD_IN $query;
+  	close CHLD_IN;
+  	my $response = do {local $/; <CHLD_OUT>};
+  
+  	# Uncomment for debugging the watch response
+  	# open ($fh, ">", ".git/watchman-response.json");
+  	# print $fh $response;
+  	# close $fh;
+  
+  	die "Watchman: command returned no output.\n" .
+  	"Falling back to scanning...\n" if $response eq "";
+  	die "Watchman: command returned invalid output: $response\n" .
+  	"Falling back to scanning...\n" unless $response =~ /^\{/;
+  
+  	return $json_pkg->new->utf8->decode($response);
+  }
+  
+  sub is_work_tree_watched {
+  	my ($output) = @_;
+  	my $error = $output->{error};
+  	if ($retry > 0 and $error and $error =~ m/unable to resolve root .* directory (.*) is not watched/) {
+  		$retry--;
+  		my $response = qx/watchman watch "$git_work_tree"/;
+  		die "Failed to make watchman watch '$git_work_tree'.\n" .
+  		    "Falling back to scanning...\n" if $? != 0;
+  		$output = $json_pkg->new->utf8->decode($response);
+  		$error = $output->{error};
+  		die "Watchman: $error.\n" .
+  		"Falling back to scanning...\n" if $error;
+  
+  		# Uncomment for debugging watchman output
+  		# open (my $fh, ">", ".git/watchman-output.out");
+  		# close $fh;
+  
+  		# Watchman will always return all files on the first query so
+  		# return the fast "everything is dirty" flag to git and do the
+  		# Watchman query just to get it over with now so we won't pay
+  		# the cost in git to look up each individual file.
+  		my $o = watchman_clock();
+  		$error = $output->{error};
+  
+  		die "Watchman: $error.\n" .
+  		"Falling back to scanning...\n" if $error;
+  
+  		output_result($o->{clock}, ("/"));
+  		$last_update_token = $o->{clock};
+  
+  		eval { launch_watchman() };
+  		return 0;
+  	}
+  
+  	die "Watchman: $error.\n" .
+  	"Falling back to scanning...\n" if $error;
+  
+  	return 1;
+  }
+  
+  sub get_working_dir {
+  	my $working_dir;
+  	if ($^O =~ 'msys' || $^O =~ 'cygwin') {
+  		$working_dir = Win32::GetCwd();
+  		$working_dir =~ tr/\\/\//;
+  	} else {
+  		require Cwd;
+  		$working_dir = Cwd::cwd();
+  	}
+  
+  	return $working_dir;
+  }
+│   │   ├── post-update.sample
+  #!/bin/sh
+  #
+  # An example hook script to prepare a packed repository for use over
+  # dumb transports.
+  #
+  # To enable this hook, rename this file to "post-update".
+  
+  exec git update-server-info
+│   │   ├── pre-applypatch.sample
+  #!/bin/sh
+  #
+  # An example hook script to verify what is about to be committed
+  # by applypatch from an e-mail message.
+  #
+  # The hook should exit with non-zero status after issuing an
+  # appropriate message if it wants to stop the commit.
+  #
+  # To enable this hook, rename this file to "pre-applypatch".
+  
+  . git-sh-setup
+  precommit="$(git rev-parse --git-path hooks/pre-commit)"
+  test -x "$precommit" && exec "$precommit" ${1+"$@"}
+  :
+│   │   ├── pre-commit.sample
+  #!/bin/sh
+  #
+  # An example hook script to verify what is about to be committed.
+  # Called by "git commit" with no arguments.  The hook should
+  # exit with non-zero status after issuing an appropriate message if
+  # it wants to stop the commit.
+  #
+  # To enable this hook, rename this file to "pre-commit".
+  
+  if git rev-parse --verify HEAD >/dev/null 2>&1
+  then
+  	against=HEAD
+  else
+  	# Initial commit: diff against an empty tree object
+  	against=$(git hash-object -t tree /dev/null)
+  fi
+  
+  # If you want to allow non-ASCII filenames set this variable to true.
+  allownonascii=$(git config --type=bool hooks.allownonascii)
+  
+  # Redirect output to stderr.
+  exec 1>&2
+  
+  # Cross platform projects tend to avoid non-ASCII filenames; prevent
+  # them from being added to the repository. We exploit the fact that the
+  # printable range starts at the space character and ends with tilde.
+  if [ "$allownonascii" != "true" ] &&
+  	# Note that the use of brackets around a tr range is ok here, (it's
+  	# even required, for portability to Solaris 10's /usr/bin/tr), since
+  	# the square bracket bytes happen to fall in the designated range.
+  	test $(git diff-index --cached --name-only --diff-filter=A -z $against |
+  	  LC_ALL=C tr -d '[ -~]\0' | wc -c) != 0
+  then
+  	cat <<\EOF
+  Error: Attempt to add a non-ASCII file name.
+  
+  This can cause problems if you want to work with people on other platforms.
+  
+  To be portable it is advisable to rename the file.
+  
+  If you know what you are doing you can disable this check using:
+  
+    git config hooks.allownonascii true
+  EOF
+  	exit 1
+  fi
+  
+  # If there are whitespace errors, print the offending file names and fail.
+  exec git diff-index --check --cached $against --
+│   │   ├── pre-merge-commit.sample
+  #!/bin/sh
+  #
+  # An example hook script to verify what is about to be committed.
+  # Called by "git merge" with no arguments.  The hook should
+  # exit with non-zero status after issuing an appropriate message to
+  # stderr if it wants to stop the merge commit.
+  #
+  # To enable this hook, rename this file to "pre-merge-commit".
+  
+  . git-sh-setup
+  test -x "$GIT_DIR/hooks/pre-commit" &&
+          exec "$GIT_DIR/hooks/pre-commit"
+  :
+│   │   ├── pre-push.sample
+  #!/bin/sh
+  
+  # An example hook script to verify what is about to be pushed.  Called by "git
+  # push" after it has checked the remote status, but before anything has been
+  # pushed.  If this script exits with a non-zero status nothing will be pushed.
+  #
+  # This hook is called with the following parameters:
+  #
+  # $1 -- Name of the remote to which the push is being done
+  # $2 -- URL to which the push is being done
+  #
+  # If pushing without using a named remote those arguments will be equal.
+  #
+  # Information about the commits which are being pushed is supplied as lines to
+  # the standard input in the form:
+  #
+  #   <local ref> <local oid> <remote ref> <remote oid>
+  #
+  # This sample shows how to prevent push of commits where the log message starts
+  # with "WIP" (work in progress).
+  
+  remote="$1"
+  url="$2"
+  
+  zero=$(git hash-object --stdin </dev/null | tr '[0-9a-f]' '0')
+  
+  while read local_ref local_oid remote_ref remote_oid
+  do
+  	if test "$local_oid" = "$zero"
+  	then
+  		# Handle delete
+  		:
+  	else
+  		if test "$remote_oid" = "$zero"
+  		then
+  			# New branch, examine all commits
+  			range="$local_oid"
+  		else
+  			# Update to existing branch, examine new commits
+  			range="$remote_oid..$local_oid"
+  		fi
+  
+  		# Check for WIP commit
+  		commit=$(git rev-list -n 1 --grep '^WIP' "$range")
+  		if test -n "$commit"
+  		then
+  			echo >&2 "Found WIP commit in $local_ref, not pushing"
+  			exit 1
+  		fi
+  	fi
+  done
+  
+  exit 0
+│   │   ├── pre-rebase.sample
+  #!/bin/sh
+  #
+  # Copyright (c) 2006, 2008 Junio C Hamano
+  #
+  # The "pre-rebase" hook is run just before "git rebase" starts doing
+  # its job, and can prevent the command from running by exiting with
+  # non-zero status.
+  #
+  # The hook is called with the following parameters:
+  #
+  # $1 -- the upstream the series was forked from.
+  # $2 -- the branch being rebased (or empty when rebasing the current branch).
+  #
+  # This sample shows how to prevent topic branches that are already
+  # merged to 'next' branch from getting rebased, because allowing it
+  # would result in rebasing already published history.
+  
+  publish=next
+  basebranch="$1"
+  if test "$#" = 2
+  then
+  	topic="refs/heads/$2"
+  else
+  	topic=`git symbolic-ref HEAD` ||
+  	exit 0 ;# we do not interrupt rebasing detached HEAD
+  fi
+  
+  case "$topic" in
+  refs/heads/??/*)
+  	;;
+  *)
+  	exit 0 ;# we do not interrupt others.
+  	;;
+  esac
+  
+  # Now we are dealing with a topic branch being rebased
+  # on top of master.  Is it OK to rebase it?
+  
+  # Does the topic really exist?
+  git show-ref -q "$topic" || {
+  	echo >&2 "No such branch $topic"
+  	exit 1
+  }
+  
+  # Is topic fully merged to master?
+  not_in_master=`git rev-list --pretty=oneline ^master "$topic"`
+  if test -z "$not_in_master"
+  then
+  	echo >&2 "$topic is fully merged to master; better remove it."
+  	exit 1 ;# we could allow it, but there is no point.
+  fi
+  
+  # Is topic ever merged to next?  If so you should not be rebasing it.
+  only_next_1=`git rev-list ^master "^$topic" ${publish} | sort`
+  only_next_2=`git rev-list ^master           ${publish} | sort`
+  if test "$only_next_1" = "$only_next_2"
+  then
+  	not_in_topic=`git rev-list "^$topic" master`
+  	if test -z "$not_in_topic"
+  	then
+  		echo >&2 "$topic is already up to date with master"
+  		exit 1 ;# we could allow it, but there is no point.
+  	else
+  		exit 0
+  	fi
+  else
+  	not_in_next=`git rev-list --pretty=oneline ^${publish} "$topic"`
+  	/usr/bin/perl -e '
+  		my $topic = $ARGV[0];
+  		my $msg = "* $topic has commits already merged to public branch:\n";
+  		my (%not_in_next) = map {
+  			/^([0-9a-f]+) /;
+  			($1 => 1);
+  		} split(/\n/, $ARGV[1]);
+  		for my $elem (map {
+  				/^([0-9a-f]+) (.*)$/;
+  				[$1 => $2];
+  			} split(/\n/, $ARGV[2])) {
+  			if (!exists $not_in_next{$elem->[0]}) {
+  				if ($msg) {
+  					print STDERR $msg;
+  					undef $msg;
+  				}
+  				print STDERR " $elem->[1]\n";
+  			}
+  		}
+  	' "$topic" "$not_in_next" "$not_in_master"
+  	exit 1
+  fi
+  
+  <<\DOC_END
+  
+  This sample hook safeguards topic branches that have been
+  published from being rewound.
+  
+  The workflow assumed here is:
+  
+   * Once a topic branch forks from "master", "master" is never
+     merged into it again (either directly or indirectly).
+  
+   * Once a topic branch is fully cooked and merged into "master",
+     it is deleted.  If you need to build on top of it to correct
+     earlier mistakes, a new topic branch is created by forking at
+     the tip of the "master".  This is not strictly necessary, but
+     it makes it easier to keep your history simple.
+  
+   * Whenever you need to test or publish your changes to topic
+     branches, merge them into "next" branch.
+  
+  The script, being an example, hardcodes the publish branch name
+  to be "next", but it is trivial to make it configurable via
+  $GIT_DIR/config mechanism.
+  
+  With this workflow, you would want to know:
+  
+  (1) ... if a topic branch has ever been merged to "next".  Young
+      topic branches can have stupid mistakes you would rather
+      clean up before publishing, and things that have not been
+      merged into other branches can be easily rebased without
+      affecting other people.  But once it is published, you would
+      not want to rewind it.
+  
+  (2) ... if a topic branch has been fully merged to "master".
+      Then you can delete it.  More importantly, you should not
+      build on top of it -- other people may already want to
+      change things related to the topic as patches against your
+      "master", so if you need further changes, it is better to
+      fork the topic (perhaps with the same name) afresh from the
+      tip of "master".
+  
+  Let's look at this example:
+  
+  		   o---o---o---o---o---o---o---o---o---o "next"
+  		  /       /           /           /
+  		 /   a---a---b A     /           /
+  		/   /               /           /
+  	       /   /   c---c---c---c B         /
+  	      /   /   /             \         /
+  	     /   /   /   b---b C     \       /
+  	    /   /   /   /             \     /
+      ---o---o---o---o---o---o---o---o---o---o---o "master"
+  
+  
+  A, B and C are topic branches.
+  
+   * A has one fix since it was merged up to "next".
+  
+   * B has finished.  It has been fully merged up to "master" and "next",
+     and is ready to be deleted.
+  
+   * C has not merged to "next" at all.
+  
+  We would want to allow C to be rebased, refuse A, and encourage
+  B to be deleted.
+  
+  To compute (1):
+  
+  	git rev-list ^master ^topic next
+  	git rev-list ^master        next
+  
+  	if these match, topic has not merged in next at all.
+  
+  To compute (2):
+  
+  	git rev-list master..topic
+  
+  	if this is empty, it is fully merged to "master".
+  
+  DOC_END
+│   │   ├── pre-receive.sample
+  #!/bin/sh
+  #
+  # An example hook script to make use of push options.
+  # The example simply echoes all push options that start with 'echoback='
+  # and rejects all pushes when the "reject" push option is used.
+  #
+  # To enable this hook, rename this file to "pre-receive".
+  
+  if test -n "$GIT_PUSH_OPTION_COUNT"
+  then
+  	i=0
+  	while test "$i" -lt "$GIT_PUSH_OPTION_COUNT"
+  	do
+  		eval "value=\$GIT_PUSH_OPTION_$i"
+  		case "$value" in
+  		echoback=*)
+  			echo "echo from the pre-receive-hook: ${value#*=}" >&2
+  			;;
+  		reject)
+  			exit 1
+  		esac
+  		i=$((i + 1))
+  	done
+  fi
+│   │   ├── prepare-commit-msg.sample
+  #!/bin/sh
+  #
+  # An example hook script to prepare the commit log message.
+  # Called by "git commit" with the name of the file that has the
+  # commit message, followed by the description of the commit
+  # message's source.  The hook's purpose is to edit the commit
+  # message file.  If the hook fails with a non-zero status,
+  # the commit is aborted.
+  #
+  # To enable this hook, rename this file to "prepare-commit-msg".
+  
+  # This hook includes three examples. The first one removes the
+  # "# Please enter the commit message..." help message.
+  #
+  # The second includes the output of "git diff --name-status -r"
+  # into the message, just before the "git status" output.  It is
+  # commented because it doesn't cope with --amend or with squashed
+  # commits.
+  #
+  # The third example adds a Signed-off-by line to the message, that can
+  # still be edited.  This is rarely a good idea.
+  
+  COMMIT_MSG_FILE=$1
+  COMMIT_SOURCE=$2
+  SHA1=$3
+  
+  /usr/bin/perl -i.bak -ne 'print unless(m/^. Please enter the commit message/..m/^#$/)' "$COMMIT_MSG_FILE"
+  
+  # case "$COMMIT_SOURCE,$SHA1" in
+  #  ,|template,)
+  #    /usr/bin/perl -i.bak -pe '
+  #       print "\n" . `git diff --cached --name-status -r`
+  # 	 if /^#/ && $first++ == 0' "$COMMIT_MSG_FILE" ;;
+  #  *) ;;
+  # esac
+  
+  # SOB=$(git var GIT_COMMITTER_IDENT | sed -n 's/^\(.*>\).*$/Signed-off-by: \1/p')
+  # git interpret-trailers --in-place --trailer "$SOB" "$COMMIT_MSG_FILE"
+  # if test -z "$COMMIT_SOURCE"
+  # then
+  #   /usr/bin/perl -i.bak -pe 'print "\n" if !$first_line++' "$COMMIT_MSG_FILE"
+  # fi
+│   │   ├── push-to-checkout.sample
+  #!/bin/sh
+  
+  # An example hook script to update a checked-out tree on a git push.
+  #
+  # This hook is invoked by git-receive-pack(1) when it reacts to git
+  # push and updates reference(s) in its repository, and when the push
+  # tries to update the branch that is currently checked out and the
+  # receive.denyCurrentBranch configuration variable is set to
+  # updateInstead.
+  #
+  # By default, such a push is refused if the working tree and the index
+  # of the remote repository has any difference from the currently
+  # checked out commit; when both the working tree and the index match
+  # the current commit, they are updated to match the newly pushed tip
+  # of the branch. This hook is to be used to override the default
+  # behaviour; however the code below reimplements the default behaviour
+  # as a starting point for convenient modification.
+  #
+  # The hook receives the commit with which the tip of the current
+  # branch is going to be updated:
+  commit=$1
+  
+  # It can exit with a non-zero status to refuse the push (when it does
+  # so, it must not modify the index or the working tree).
+  die () {
+  	echo >&2 "$*"
+  	exit 1
+  }
+  
+  # Or it can make any necessary changes to the working tree and to the
+  # index to bring them to the desired state when the tip of the current
+  # branch is updated to the new commit, and exit with a zero status.
+  #
+  # For example, the hook can simply run git read-tree -u -m HEAD "$1"
+  # in order to emulate git fetch that is run in the reverse direction
+  # with git push, as the two-tree form of git read-tree -u -m is
+  # essentially the same as git switch or git checkout that switches
+  # branches while keeping the local changes in the working tree that do
+  # not interfere with the difference between the branches.
+  
+  # The below is a more-or-less exact translation to shell of the C code
+  # for the default behaviour for git's push-to-checkout hook defined in
+  # the push_to_deploy() function in builtin/receive-pack.c.
+  #
+  # Note that the hook will be executed from the repository directory,
+  # not from the working tree, so if you want to perform operations on
+  # the working tree, you will have to adapt your code accordingly, e.g.
+  # by adding "cd .." or using relative paths.
+  
+  if ! git update-index -q --ignore-submodules --refresh
+  then
+  	die "Up-to-date check failed"
+  fi
+  
+  if ! git diff-files --quiet --ignore-submodules --
+  then
+  	die "Working directory has unstaged changes"
+  fi
+  
+  # This is a rough translation of:
+  #
+  #   head_has_history() ? "HEAD" : EMPTY_TREE_SHA1_HEX
+  if git cat-file -e HEAD 2>/dev/null
+  then
+  	head=HEAD
+  else
+  	head=$(git hash-object -t tree --stdin </dev/null)
+  fi
+  
+  if ! git diff-index --quiet --cached --ignore-submodules $head --
+  then
+  	die "Working directory has staged changes"
+  fi
+  
+  if ! git read-tree -u -m "$commit"
+  then
+  	die "Could not update working tree to new HEAD"
+  fi
+│   │   ├── sendemail-validate.sample
+  #!/bin/sh
+  
+  # An example hook script to validate a patch (and/or patch series) before
+  # sending it via email.
+  #
+  # The hook should exit with non-zero status after issuing an appropriate
+  # message if it wants to prevent the email(s) from being sent.
+  #
+  # To enable this hook, rename this file to "sendemail-validate".
+  #
+  # By default, it will only check that the patch(es) can be applied on top of
+  # the default upstream branch without conflicts in a secondary worktree. After
+  # validation (successful or not) of the last patch of a series, the worktree
+  # will be deleted.
+  #
+  # The following config variables can be set to change the default remote and
+  # remote ref that are used to apply the patches against:
+  #
+  #   sendemail.validateRemote (default: origin)
+  #   sendemail.validateRemoteRef (default: HEAD)
+  #
+  # Replace the TODO placeholders with appropriate checks according to your
+  # needs.
+  
+  validate_cover_letter () {
+  	file="$1"
+  	# TODO: Replace with appropriate checks (e.g. spell checking).
+  	true
+  }
+  
+  validate_patch () {
+  	file="$1"
+  	# Ensure that the patch applies without conflicts.
+  	git am -3 "$file" || return
+  	# TODO: Replace with appropriate checks for this patch
+  	# (e.g. checkpatch.pl).
+  	true
+  }
+  
+  validate_series () {
+  	# TODO: Replace with appropriate checks for the whole series
+  	# (e.g. quick build, coding style checks, etc.).
+  	true
+  }
+  
+  # main -------------------------------------------------------------------------
+  
+  if test "$GIT_SENDEMAIL_FILE_COUNTER" = 1
+  then
+  	remote=$(git config --default origin --get sendemail.validateRemote) &&
+  	ref=$(git config --default HEAD --get sendemail.validateRemoteRef) &&
+  	worktree=$(mktemp --tmpdir -d sendemail-validate.XXXXXXX) &&
+  	git worktree add -fd --checkout "$worktree" "refs/remotes/$remote/$ref" &&
+  	git config --replace-all sendemail.validateWorktree "$worktree"
+  else
+  	worktree=$(git config --get sendemail.validateWorktree)
+  fi || {
+  	echo "sendemail-validate: error: failed to prepare worktree" >&2
+  	exit 1
+  }
+  
+  unset GIT_DIR GIT_WORK_TREE
+  cd "$worktree" &&
+  
+  if grep -q "^diff --git " "$1"
+  then
+  	validate_patch "$1"
+  else
+  	validate_cover_letter "$1"
+  fi &&
+  
+  if test "$GIT_SENDEMAIL_FILE_COUNTER" = "$GIT_SENDEMAIL_FILE_TOTAL"
+  then
+  	git config --unset-all sendemail.validateWorktree &&
+  	trap 'git worktree remove -ff "$worktree"' EXIT &&
+  	validate_series
+  fi
+│   │   └── update.sample
+  #!/bin/sh
+  #
+  # An example hook script to block unannotated tags from entering.
+  # Called by "git receive-pack" with arguments: refname sha1-old sha1-new
+  #
+  # To enable this hook, rename this file to "update".
+  #
+  # Config
+  # ------
+  # hooks.allowunannotated
+  #   This boolean sets whether unannotated tags will be allowed into the
+  #   repository.  By default they won't be.
+  # hooks.allowdeletetag
+  #   This boolean sets whether deleting tags will be allowed in the
+  #   repository.  By default they won't be.
+  # hooks.allowmodifytag
+  #   This boolean sets whether a tag may be modified after creation. By default
+  #   it won't be.
+  # hooks.allowdeletebranch
+  #   This boolean sets whether deleting branches will be allowed in the
+  #   repository.  By default they won't be.
+  # hooks.denycreatebranch
+  #   This boolean sets whether remotely creating branches will be denied
+  #   in the repository.  By default this is allowed.
+  #
+  
+  # --- Command line
+  refname="$1"
+  oldrev="$2"
+  newrev="$3"
+  
+  # --- Safety check
+  if [ -z "$GIT_DIR" ]; then
+  	echo "Don't run this script from the command line." >&2
+  	echo " (if you want, you could supply GIT_DIR then run" >&2
+  	echo "  $0 <ref> <oldrev> <newrev>)" >&2
+  	exit 1
+  fi
+  
+  if [ -z "$refname" -o -z "$oldrev" -o -z "$newrev" ]; then
+  	echo "usage: $0 <ref> <oldrev> <newrev>" >&2
+  	exit 1
+  fi
+  
+  # --- Config
+  allowunannotated=$(git config --type=bool hooks.allowunannotated)
+  allowdeletebranch=$(git config --type=bool hooks.allowdeletebranch)
+  denycreatebranch=$(git config --type=bool hooks.denycreatebranch)
+  allowdeletetag=$(git config --type=bool hooks.allowdeletetag)
+  allowmodifytag=$(git config --type=bool hooks.allowmodifytag)
+  
+  # check for no description
+  projectdesc=$(sed -e '1q' "$GIT_DIR/description")
+  case "$projectdesc" in
+  "Unnamed repository"* | "")
+  	echo "*** Project description file hasn't been set" >&2
+  	exit 1
+  	;;
+  esac
+  
+  # --- Check types
+  # if $newrev is 0000...0000, it's a commit to delete a ref.
+  zero=$(git hash-object --stdin </dev/null | tr '[0-9a-f]' '0')
+  if [ "$newrev" = "$zero" ]; then
+  	newrev_type=delete
+  else
+  	newrev_type=$(git cat-file -t $newrev)
+  fi
+  
+  case "$refname","$newrev_type" in
+  	refs/tags/*,commit)
+  		# un-annotated tag
+  		short_refname=${refname##refs/tags/}
+  		if [ "$allowunannotated" != "true" ]; then
+  			echo "*** The un-annotated tag, $short_refname, is not allowed in this repository" >&2
+  			echo "*** Use 'git tag [ -a | -s ]' for tags you want to propagate." >&2
+  			exit 1
+  		fi
+  		;;
+  	refs/tags/*,delete)
+  		# delete tag
+  		if [ "$allowdeletetag" != "true" ]; then
+  			echo "*** Deleting a tag is not allowed in this repository" >&2
+  			exit 1
+  		fi
+  		;;
+  	refs/tags/*,tag)
+  		# annotated tag
+  		if [ "$allowmodifytag" != "true" ] && git rev-parse $refname > /dev/null 2>&1
+  		then
+  			echo "*** Tag '$refname' already exists." >&2
+  			echo "*** Modifying a tag is not allowed in this repository." >&2
+  			exit 1
+  		fi
+  		;;
+  	refs/heads/*,commit)
+  		# branch
+  		if [ "$oldrev" = "$zero" -a "$denycreatebranch" = "true" ]; then
+  			echo "*** Creating a branch is not allowed in this repository" >&2
+  			exit 1
+  		fi
+  		;;
+  	refs/heads/*,delete)
+  		# delete branch
+  		if [ "$allowdeletebranch" != "true" ]; then
+  			echo "*** Deleting a branch is not allowed in this repository" >&2
+  			exit 1
+  		fi
+  		;;
+  	refs/remotes/*,commit)
+  		# tracking branch
+  		;;
+  	refs/remotes/*,delete)
+  		# delete tracking branch
+  		if [ "$allowdeletebranch" != "true" ]; then
+  			echo "*** Deleting a tracking branch is not allowed in this repository" >&2
+  			exit 1
+  		fi
+  		;;
+  	*)
+  		# Anything else (is there anything else?)
+  		echo "*** Update hook: unknown type of update to ref $refname of type $newrev_type" >&2
+  		exit 1
+  		;;
+  esac
+  
+  # --- Finished
+  exit 0
+│   ├── index
+  [Error: 'utf-8' codec can't decode byte 0xb3 in position 13: invalid start byte]
+│   ├── info
+│   │   └── exclude
+  # git ls-files --others --exclude-from=.git/info/exclude
+  # Lines that start with '#' are comments.
+  # For a project mostly in C, the following would be a good set of
+  # exclude patterns (uncomment them if you want to use them):
+  # *.[oa]
+  # *~
+│   ├── logs
+│   │   ├── HEAD
+  0000000000000000000000000000000000000000 9ac0f8b750cb8d29e19793f51a0e2a37203cb384 muvixo <godarshia20@gmail.com> 1790126672 +0330	commit (initial): Initial commit
+  9ac0f8b750cb8d29e19793f51a0e2a37203cb384 0000000000000000000000000000000000000000 muvixo <godarshia20@gmail.com> 1790126676 +0330	Branch: renamed refs/heads/master to refs/heads/main
+  0000000000000000000000000000000000000000 9ac0f8b750cb8d29e19793f51a0e2a37203cb384 muvixo <godarshia20@gmail.com> 1790126676 +0330	Branch: renamed refs/heads/master to refs/heads/main
+  9ac0f8b750cb8d29e19793f51a0e2a37203cb384 1dc547f7126934fb1694cede100f527a3c9135e3 muvixo <godarshia20@gmail.com> 1790127259 +0330	commit: Initial commit
+  1dc547f7126934fb1694cede100f527a3c9135e3 f907b17f537210d1da9ca1df29e6cb20b59ca0e3 muvixo <godarshia20@gmail.com> 1790128006 +0330	commit: Initial commit
+  f907b17f537210d1da9ca1df29e6cb20b59ca0e3 f648e3dc52d69022df6f680b82e65efe89c04b62 muvixo <godarshia20@gmail.com> 1790128945 +0330	commit: Initial commit
+  f648e3dc52d69022df6f680b82e65efe89c04b62 606d2840a36ca2a48d2e961a801755494a3caa9e muvixo <godarshia20@gmail.com> 1790129057 +0330	commit: Initial commit
+  606d2840a36ca2a48d2e961a801755494a3caa9e 8459c7ff156e62d7c7683410b57418e2c3448465 muvixo <godarshia20@gmail.com> 1790129546 +0330	commit: Initial commit
+  8459c7ff156e62d7c7683410b57418e2c3448465 33de73376663f28aa45884e9eeb2e146b6dab0d9 muvixo <godarshia20@gmail.com> 1790130142 +0330	commit: Initial commit
+  33de73376663f28aa45884e9eeb2e146b6dab0d9 5499de63e5bb25b2fe45927a22ed14b60664c6e7 muvixo <godarshia20@gmail.com> 1790137066 +0330	commit: Initial commit
+│   │   └── refs
+│   │       ├── heads
+│   │       │   └── main
+  0000000000000000000000000000000000000000 9ac0f8b750cb8d29e19793f51a0e2a37203cb384 muvixo <godarshia20@gmail.com> 1790126672 +0330	commit (initial): Initial commit
+  9ac0f8b750cb8d29e19793f51a0e2a37203cb384 9ac0f8b750cb8d29e19793f51a0e2a37203cb384 muvixo <godarshia20@gmail.com> 1790126676 +0330	Branch: renamed refs/heads/master to refs/heads/main
+  9ac0f8b750cb8d29e19793f51a0e2a37203cb384 1dc547f7126934fb1694cede100f527a3c9135e3 muvixo <godarshia20@gmail.com> 1790127259 +0330	commit: Initial commit
+  1dc547f7126934fb1694cede100f527a3c9135e3 f907b17f537210d1da9ca1df29e6cb20b59ca0e3 muvixo <godarshia20@gmail.com> 1790128006 +0330	commit: Initial commit
+  f907b17f537210d1da9ca1df29e6cb20b59ca0e3 f648e3dc52d69022df6f680b82e65efe89c04b62 muvixo <godarshia20@gmail.com> 1790128945 +0330	commit: Initial commit
+  f648e3dc52d69022df6f680b82e65efe89c04b62 606d2840a36ca2a48d2e961a801755494a3caa9e muvixo <godarshia20@gmail.com> 1790129057 +0330	commit: Initial commit
+  606d2840a36ca2a48d2e961a801755494a3caa9e 8459c7ff156e62d7c7683410b57418e2c3448465 muvixo <godarshia20@gmail.com> 1790129546 +0330	commit: Initial commit
+  8459c7ff156e62d7c7683410b57418e2c3448465 33de73376663f28aa45884e9eeb2e146b6dab0d9 muvixo <godarshia20@gmail.com> 1790130142 +0330	commit: Initial commit
+  33de73376663f28aa45884e9eeb2e146b6dab0d9 5499de63e5bb25b2fe45927a22ed14b60664c6e7 muvixo <godarshia20@gmail.com> 1790137066 +0330	commit: Initial commit
+│   │       └── remotes
+│   │           └── origin
+│   │               └── main
+  0000000000000000000000000000000000000000 9ac0f8b750cb8d29e19793f51a0e2a37203cb384 muvixo <godarshia20@gmail.com> 1790126725 +0330	update by push
+  9ac0f8b750cb8d29e19793f51a0e2a37203cb384 1dc547f7126934fb1694cede100f527a3c9135e3 muvixo <godarshia20@gmail.com> 1790127271 +0330	update by push
+  1dc547f7126934fb1694cede100f527a3c9135e3 f907b17f537210d1da9ca1df29e6cb20b59ca0e3 muvixo <godarshia20@gmail.com> 1790128020 +0330	update by push
+  f907b17f537210d1da9ca1df29e6cb20b59ca0e3 f648e3dc52d69022df6f680b82e65efe89c04b62 muvixo <godarshia20@gmail.com> 1790128965 +0330	update by push
+  f648e3dc52d69022df6f680b82e65efe89c04b62 606d2840a36ca2a48d2e961a801755494a3caa9e muvixo <godarshia20@gmail.com> 1790129074 +0330	update by push
+  606d2840a36ca2a48d2e961a801755494a3caa9e 8459c7ff156e62d7c7683410b57418e2c3448465 muvixo <godarshia20@gmail.com> 1790129559 +0330	update by push
+  8459c7ff156e62d7c7683410b57418e2c3448465 33de73376663f28aa45884e9eeb2e146b6dab0d9 muvixo <godarshia20@gmail.com> 1790130167 +0330	update by push
+  33de73376663f28aa45884e9eeb2e146b6dab0d9 5499de63e5bb25b2fe45927a22ed14b60664c6e7 muvixo <godarshia20@gmail.com> 1790137085 +0330	update by push
+│   ├── objects
+│   │   ├── 00
+│   │   │   └── 986249884086936f802b842352df36a69906f9
+  [Error: 'utf-8' codec can't decode byte 0xb1 in position 4: invalid start byte]
+│   │   ├── 01
+│   │   │   └── 1ddcfd77ee0e58d4334fae98a12f37286dd95c
+  [Error: 'utf-8' codec can't decode byte 0xd1 in position 4: invalid continuation byte]
+│   │   ├── 08
+│   │   │   └── 8587e5385721d8d996d617a3d955c44a2262bd
+  [Error: 'utf-8' codec can't decode byte 0xce in position 19: invalid continuation byte]
+│   │   ├── 0b
+│   │   │   └── 77202b7948c696cfbfc8417d79354e6fc91b56
+  [Error: 'utf-8' codec can't decode byte 0xce in position 18: invalid continuation byte]
+│   │   ├── 0d
+│   │   │   └── 75464b698fa237dba01748dc66fad09d33a007
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   ├── 0f
+│   │   │   └── fcc7542882250806abd6aa1581f0c2fc5cecaa
+  [Error: 'utf-8' codec can't decode byte 0xad in position 2: invalid start byte]
+│   │   ├── 10
+│   │   │   └── 8ba1fd3fa4937d090305a09a7dea5f4e321c06
+  [Error: 'utf-8' codec can't decode byte 0x9d in position 2: invalid start byte]
+│   │   ├── 14
+│   │   │   └── 8e68d7eb1d0c837b3621257ab90081ea96a9d7
+  [Error: 'utf-8' codec can't decode byte 0x8f in position 3: invalid start byte]
+│   │   ├── 16
+│   │   │   └── 97853f67c548941107b4fb96508fcacca8464f
+  [Error: 'utf-8' codec can't decode byte 0xb2 in position 8: invalid start byte]
+│   │   ├── 17
+│   │   │   └── c863807179eb8cd46ed5247e27c82889fea637
+  [Error: 'utf-8' codec can't decode byte 0xad in position 2: invalid start byte]
+│   │   ├── 18
+│   │   │   └── dd31d4ce9a378c965f51bd95af9b0d3464d082
+  [Error: 'utf-8' codec can't decode byte 0xcd in position 2: invalid continuation byte]
+│   │   ├── 1b
+│   │   │   └── ac94bfd8e1fb09b3287fe7efbf08bf0b29a927
+  [Error: 'utf-8' codec can't decode byte 0xce in position 21: invalid continuation byte]
+│   │   ├── 1c
+│   │   │   └── d47f02cb3bc798eed8df3c184baff46e80d88f
+  [Error: 'utf-8' codec can't decode byte 0x8d in position 2: invalid start byte]
+│   │   ├── 1d
+│   │   │   ├── c547f7126934fb1694cede100f527a3c9135e3
+  [Error: 'utf-8' codec can't decode byte 0x95 in position 2: invalid start byte]
+│   │   │   └── eb1caf46d847f73da4c69704b6e57e722b9be6
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   ├── 20
+│   │   │   └── b2745f6f393af9c73bf116fa5826f70fbd0f7c
+  [Error: 'utf-8' codec can't decode byte 0xc8 in position 18: invalid continuation byte]
+│   │   ├── 26
+│   │   │   └── efe562eaf46d68986924ba8ddc8a46b88db419
+  [Error: 'utf-8' codec can't decode byte 0xb4 in position 8: invalid start byte]
+│   │   ├── 27
+│   │   │   └── 703f2ef83175faffbea451605cb9b3e887f165
+  [Error: 'utf-8' codec can't decode byte 0xa5 in position 2: invalid start byte]
+│   │   ├── 29
+│   │   │   └── a3ec978b828a3b5af3191214d6ebf18f4f138e
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 2: invalid start byte]
+│   │   ├── 2b
+│   │   │   ├── 2d4138f13d85b9ffca9c019cbab748c191d8f9
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   │   └── 7edd900bc9829d095f2481326a84ad074f229a
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   ├── 2d
+│   │   │   └── 63f77d634f88332dd00f78e3ffa6597cb7db1b
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   ├── 33
+│   │   │   └── de73376663f28aa45884e9eeb2e146b6dab0d9
+  [Error: 'utf-8' codec can't decode byte 0x95 in position 2: invalid start byte]
+│   │   ├── 34
+│   │   │   ├── 0e7a99dd981cd81326db81b13f6fd4aab84714
+  [Error: 'utf-8' codec can't decode byte 0xce in position 21: invalid continuation byte]
+│   │   │   ├── 19e50e7a1c6078447134b7b8baf1f63783ee35
+  [Error: 'utf-8' codec can't decode byte 0xce in position 19: invalid continuation byte]
+│   │   │   └── 423a652c84c37724e98b06f010ab88b0a4dd61
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   ├── 35
+│   │   │   ├── 3c31c6dcb5f4eedaa50c23668d736192b1468c
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   │   └── cbce53191616d537b9b26806341c05cc2b61ec
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   ├── 37
+│   │   │   └── f8a2068d7b1a176a0f84b5f21dc6fd5ab3fda8
+  [Error: 'utf-8' codec can't decode byte 0xbd in position 16: invalid start byte]
+│   │   ├── 38
+│   │   │   └── f0dfaaf066f7dc63dc035c834fa4a8fc9e91ba
+  [Error: 'utf-8' codec can't decode byte 0x95 in position 2: invalid start byte]
+│   │   ├── 3a
+│   │   │   └── 5662dbe45b8d0694fc491911a5b989c140018b
+  [Error: 'utf-8' codec can't decode byte 0xad in position 2: invalid start byte]
+│   │   ├── 3b
+│   │   │   └── f574b24f8711c3baf9ad3131a042b4e9df5289
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   ├── 40
+│   │   │   └── 6693bafb83e8f440fd501732ae8ffd4bc3f77f
+  [Error: 'utf-8' codec can't decode byte 0xce in position 19: invalid continuation byte]
+│   │   ├── 42
+│   │   │   └── 93084e242d6f8c03d053d1cda9eaafb1aabaac
+  [Error: 'utf-8' codec can't decode byte 0xb0 in position 7: invalid start byte]
+│   │   ├── 43
+│   │   │   ├── 382a4765d619693aab96c8ed03a23b5923df9b
+  [Error: 'utf-8' codec can't decode byte 0xcd in position 2: invalid continuation byte]
+│   │   │   └── 5b9eea24f7a16f3d46a73aed8c25ecb1912a33
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   ├── 44
+│   │   │   └── 320f9519fbb504c4b4489edcf1f255d521aed8
+  [Error: 'utf-8' codec can't decode byte 0x9d in position 2: invalid start byte]
+│   │   ├── 46
+│   │   │   └── 584c3362e042829c1f3d359745d26fac3ed64b
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   ├── 47
+│   │   │   ├── 409e1f204c7fa59fc0be477121ecbf7c34eca9
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   │   └── d9b5ffd2245449b106ed22f97e02ec075300e5
+  [Error: 'utf-8' codec can't decode byte 0xcd in position 2: invalid continuation byte]
+│   │   ├── 49
+│   │   │   ├── 4e098b641cf065b6e6b9a02dc37ae6f124f80b
+  [Error: 'utf-8' codec can't decode byte 0xb0 in position 7: invalid start byte]
+│   │   │   └── a25ab7fba050c936ffa25cb8272e2cc621f03c
+  [Error: 'utf-8' codec can't decode byte 0xb2 in position 8: invalid start byte]
+│   │   ├── 4a
+│   │   │   └── 4d520280b5fb842361640f6f9d435f5ca04233
+  [Error: 'utf-8' codec can't decode byte 0xa5 in position 2: invalid start byte]
+│   │   ├── 4b
+│   │   │   └── 61a9d1c42457da77287ca14de36d7e4ee8c2f9
+  [Error: 'utf-8' codec can't decode byte 0xbd in position 2: invalid start byte]
+│   │   ├── 4c
+│   │   │   └── b425ad206c4563a450d7421f4a7b6863122327
+  [Error: 'utf-8' codec can't decode byte 0x8d in position 2: invalid start byte]
+│   │   ├── 4e
+│   │   │   └── eab533c30a7c310e1578b1c39f87904985e9ba
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   ├── 4f
+│   │   │   └── baa4d2754fc59bf2607260b4e0a8bc715a0377
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   ├── 50
+│   │   │   └── 41a366f0c0eac8f456048d5e9a9688ef4f2385
+  [Error: 'utf-8' codec can't decode byte 0x95 in position 2: invalid start byte]
+│   │   ├── 54
+│   │   │   └── 99de63e5bb25b2fe45927a22ed14b60664c6e7
+  [Error: 'utf-8' codec can't decode byte 0x95 in position 2: invalid start byte]
+│   │   ├── 56
+│   │   │   └── 164670e89c6b4e8b42134774e0e4edee7a8668
+  [Error: 'utf-8' codec can't decode byte 0xbd in position 16: invalid start byte]
+│   │   ├── 59
+│   │   │   └── 2e91a5b867823c7ae9c4b5cbaae2178a4b4f54
+  [Error: 'utf-8' codec can't decode byte 0xb2 in position 8: invalid start byte]
+│   │   ├── 5b
+│   │   │   └── 94fa435cc8dfb226bd020ec6fbb40639ec49ba
+  [Error: 'utf-8' codec can't decode byte 0xbd in position 16: invalid start byte]
+│   │   ├── 5c
+│   │   │   └── c8a8009b8b70d965ee5d1d505355d90cb57817
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   ├── 5f
+│   │   │   └── 62244a65817c7cfdfd61b63cd6106e9840ec0c
+  [Error: 'utf-8' codec can't decode byte 0xad in position 2: invalid start byte]
+│   │   ├── 60
+│   │   │   └── 6d2840a36ca2a48d2e961a801755494a3caa9e
+  [Error: 'utf-8' codec can't decode byte 0x95 in position 2: invalid start byte]
+│   │   ├── 62
+│   │   │   └── 7a2a9f3a8cd1dc438f5f199e8b9b6cf040316d
+  [Error: 'utf-8' codec can't decode byte 0xb2 in position 8: invalid start byte]
+│   │   ├── 63
+│   │   │   └── a80aa860e3163364642fbdfb83509ea676bdec
+  [Error: 'utf-8' codec can't decode byte 0xc8 in position 18: invalid continuation byte]
+│   │   ├── 65
+│   │   │   └── 04c63c8200b217fdb3e826c46d68204a8da19b
+  [Error: 'utf-8' codec can't decode byte 0xce in position 21: invalid continuation byte]
+│   │   ├── 68
+│   │   │   └── 15a033f2bfa189b20dd638dab0004e2bc139bd
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   ├── 69
+│   │   │   └── 234be4c698104b7c5711738c88b8b0862a9091
+  [Error: 'utf-8' codec can't decode byte 0xa5 in position 2: invalid start byte]
+│   │   ├── 6a
+│   │   │   └── 46b5febc7880b1e35c1980a21cad914925b497
+  [Error: 'utf-8' codec can't decode byte 0xca in position 3: invalid continuation byte]
+│   │   ├── 6b
+│   │   │   └── a9ff7244eab740311f6b083c2bfc36efd5f4b0
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   ├── 6c
+│   │   │   └── 2f7e6f15d0d335b2e8e5fb1d3b8b5291ea7371
+  [Error: 'utf-8' codec can't decode byte 0x8d in position 2: invalid start byte]
+│   │   ├── 6d
+│   │   │   └── 475560e6a36e1d8fb60e323ab9ab9335e5d671
+  [Error: 'utf-8' codec can't decode byte 0xc8 in position 18: invalid continuation byte]
+│   │   ├── 6e
+│   │   │   ├── 7dd515628cad154cfb3e6fbb167f2d6145a5eb
+  [Error: 'utf-8' codec can't decode byte 0xc8 in position 18: invalid continuation byte]
+│   │   │   ├── 83df66be4427d962ed47b0f247d0b7bbc45494
+  [Error: 'utf-8' codec can't decode byte 0x9d in position 2: invalid start byte]
+│   │   │   └── dfbe4c8804d072fc761cf0e049ffd4ca459d38
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   ├── 6f
+│   │   │   ├── 6c6455aaaa4f52a17eea73a1fffd42dbefda99
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   │   └── f161148418cc969a8180d204f5d803940aab46
+  [Error: 'utf-8' codec can't decode byte 0xbd in position 16: invalid start byte]
+│   │   ├── 70
+│   │   │   ├── 2d6b524fd7619346ba31d75df9527b9a6e57fd
+  [Error: 'utf-8' codec can't decode byte 0xd5 in position 2: invalid continuation byte]
+│   │   │   └── 4ad4df8fabbb99bf11a439ff6b1fe05d0dfdd4
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   ├── 72
+│   │   │   └── 9663db7213d51b44b57d1c7939d929ddf2ddf8
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   ├── 73
+│   │   │   ├── a89352e21f2c8fddf37756376c7d260c29e306
+  [Error: 'utf-8' codec can't decode byte 0xce in position 21: invalid continuation byte]
+│   │   │   └── ae1c22f2a4e7483631acc58ca96e8d4458de24
+  [Error: 'utf-8' codec can't decode byte 0x9d in position 2: invalid start byte]
+│   │   ├── 74
+│   │   │   ├── 603a16cc5bcb5450a8e6e6f1ba0e32d19cf84b
+  [Error: 'utf-8' codec can't decode byte 0x9d in position 2: invalid start byte]
+│   │   │   └── dbd2c9ad8fc2b309dd181a0f63ee72951ca0a3
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   ├── 75
+│   │   │   ├── 9aa7ded91ecfa5f43e45b276fa288c3a0b6b05
+  [Error: 'utf-8' codec can't decode byte 0xe5 in position 2: invalid continuation byte]
+│   │   │   └── cf97adf5c928a7ecde47bc439370778086f113
+  [Error: 'utf-8' codec can't decode byte 0x8d in position 2: invalid start byte]
+│   │   ├── 78
+│   │   │   └── bb6cfd2e3f38bd04b9b6a2729ec04328f10b34
+  [Error: 'utf-8' codec can't decode byte 0xc5 in position 2: invalid continuation byte]
+│   │   ├── 79
+│   │   │   ├── d0c69f33ea6bdfdd1c61a509dc7dcbc6b21975
+  [Error: 'utf-8' codec can't decode byte 0x8d in position 2: invalid start byte]
+│   │   │   └── ff029119c358b60ab6151762db7c7e885b44a2
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   ├── 7b
+│   │   │   └── 7c9f3a52713e14f1884009727dab0b75b14e2f
+  [Error: 'utf-8' codec can't decode byte 0x8d in position 2: invalid start byte]
+│   │   ├── 7d
+│   │   │   ├── 684e04737e316a42c6a2e63f38558167cfd5b8
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   │   └── aae1f39c86a6e191f18decab387a52fb575662
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   ├── 7f
+│   │   │   └── 8de2ff3c3f28db1abac8b9e9e17365fa4632d1
+  [Error: 'utf-8' codec can't decode byte 0xbd in position 16: invalid start byte]
+│   │   ├── 80
+│   │   │   └── 542b4ae4ae110b2e36c699eb82314c2a8bc9df
+  [Error: 'utf-8' codec can't decode byte 0xdd in position 4: invalid continuation byte]
+│   │   ├── 81
+│   │   │   ├── 238314aef72c7a679c8b555b0b2835ed71ee1e
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   │   ├── 335f365593e4ff35c2333a2e224d1183685926
+  [Error: 'utf-8' codec can't decode byte 0xb0 in position 7: invalid start byte]
+│   │   │   └── 45e25ebd8599b9e05fbef2386b83ad872dd7fe
+  [Error: 'utf-8' codec can't decode byte 0xbd in position 16: invalid start byte]
+│   │   ├── 83
+│   │   │   └── df614c9e3bd54da8040cba61e93068f9e1defb
+  [Error: 'utf-8' codec can't decode byte 0xc8 in position 18: invalid continuation byte]
+│   │   ├── 84
+│   │   │   ├── 255751edcbd247302930ebe76e1e8c65d578b2
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   │   └── 59c7ff156e62d7c7683410b57418e2c3448465
+  [Error: 'utf-8' codec can't decode byte 0x95 in position 2: invalid start byte]
+│   │   ├── 85
+│   │   │   └── 18b4ff45e2325a39287369ac1b0037fc96bd64
+  [Error: 'utf-8' codec can't decode byte 0xc8 in position 18: invalid continuation byte]
+│   │   ├── 86
+│   │   │   └── 8834472a80428cd378848f0c697c57166de453
+  [Error: 'utf-8' codec can't decode byte 0xb2 in position 8: invalid start byte]
+│   │   ├── 87
+│   │   │   └── 857dc774a5595e6deb0f4ab8e9a74272d2b4d5
+  [Error: 'utf-8' codec can't decode byte 0xcd in position 2: invalid continuation byte]
+│   │   ├── 8e
+│   │   │   ├── 13d6acecf3b563f8e216629991d8224d33090b
+  [Error: 'utf-8' codec can't decode byte 0xce in position 19: invalid continuation byte]
+│   │   │   ├── 37f36e00125f2007814188cb304f72e904a353
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   │   └── ec78c3c6561c25cb8688e35af0bc3dd1624871
+  [Error: 'utf-8' codec can't decode byte 0xd4 in position 6: invalid continuation byte]
+│   │   ├── 90
+│   │   │   ├── 78c1c9c5a51af0b80c32dc8bc0af0b037a44a9
+  [Error: 'utf-8' codec can't decode byte 0x8d in position 2: invalid start byte]
+│   │   │   └── c84655e23d46b3d920cbd09718c09f158ba6a3
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   ├── 94
+│   │   │   └── 116917b066ec4a2dff73b9c97d3c9bd33910aa
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   ├── 97
+│   │   │   └── 1d9756fa930386b2394531067350cd5ead1258
+  [Error: 'utf-8' codec can't decode byte 0xce in position 18: invalid continuation byte]
+│   │   ├── 9a
+│   │   │   ├── 3a7ffc8f63e11ad6bc984f86ca0401892ced44
+  [Error: 'utf-8' codec can't decode byte 0xcd in position 2: invalid continuation byte]
+│   │   │   └── c0f8b750cb8d29e19793f51a0e2a37203cb384
+  [Error: 'utf-8' codec can't decode byte 0x95 in position 2: invalid start byte]
+│   │   ├── 9b
+│   │   │   └── 4c86c1774371ddda37694a445548edee254f8d
+  [Error: 'utf-8' codec can't decode byte 0xdb in position 4: invalid continuation byte]
+│   │   ├── 9c
+│   │   │   └── 9b0339fe70e812040e389c9896f36b612a5f0e
+  [Error: 'utf-8' codec can't decode byte 0xad in position 2: invalid start byte]
+│   │   ├── a1
+│   │   │   └── 39e434d84b685cedeac21bc6130c3ae989bd58
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   ├── a2
+│   │   │   └── 09342ff2dfee9b99cf9c0a3e3c1ae9b09aa68a
+  [Error: 'utf-8' codec can't decode byte 0xb5 in position 2: invalid start byte]
+│   │   ├── a3
+│   │   │   └── 0d9344ae50260abf96ad65dc80b62f35aae93f
+  [Error: 'utf-8' codec can't decode byte 0x9d in position 2: invalid start byte]
+│   │   ├── a4
+│   │   │   ├── 2b2e7f74439347727555be28c6eda7e524b95a
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   │   └── dcfc21b49b32211cf18a56d53ead99fe54481d
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   ├── a9
+│   │   │   └── 9a0bd0801451fc70eb622e0795cbc876303a90
+  [Error: 'utf-8' codec can't decode byte 0x8e in position 3: invalid start byte]
+│   │   ├── aa
+│   │   │   ├── 23de2e7015c941ebf668e46233e71eb3bea7e4
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   │   └── f4524a792d571f34c4bbbf8278355a8f9d9847
+  [Error: 'utf-8' codec can't decode byte 0xb2 in position 8: invalid start byte]
+│   │   ├── ac
+│   │   │   ├── 428a1e58e2f043deaf0ea915a1ed76b193b85d
+  [Error: 'utf-8' codec can't decode byte 0xc8 in position 18: invalid continuation byte]
+│   │   │   ├── 4f4d64c36a9d072bdbe48484044472ab3118cb
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   │   └── ceb9e763d84dd922c106c82cee5c1ad9c6b96c
+  [Error: 'utf-8' codec can't decode byte 0x8d in position 2: invalid start byte]
+│   │   ├── ad
+│   │   │   └── 6f9e3bbb85971ba6056bc831e03617c07d6a9b
+  [Error: 'utf-8' codec can't decode byte 0xa5 in position 2: invalid start byte]
+│   │   ├── ae
+│   │   │   ├── 242ded627dafd487a5e303b096bcd3346ca029
+  [Error: 'utf-8' codec can't decode byte 0xb5 in position 2: invalid start byte]
+│   │   │   └── cbe3711d5164106458a00109f2446a7f5442fa
+  [Error: 'utf-8' codec can't decode byte 0xd3 in position 6: invalid continuation byte]
+│   │   ├── b0
+│   │   │   └── 0160951b1b55dcd64b17e3924b5df5792b7da2
+  [Error: 'utf-8' codec can't decode byte 0xad in position 2: invalid start byte]
+│   │   ├── b5
+│   │   │   └── 7d45cc5fa4e1804b7ac3c123de754494591336
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   ├── b7
+│   │   │   └── 7b57a8768dfe6d95bf92740f5f9fb328b7bc68
+  [Error: 'utf-8' codec can't decode byte 0xce in position 21: invalid continuation byte]
+│   │   ├── b8
+│   │   │   └── 8fbd56529ec587698bc1939256b5fa4e43fa34
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   ├── b9
+│   │   │   └── 7751649c691c433000f3819d7fc5ca4338e350
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   ├── ba
+│   │   │   └── da6cb0bbd83c3308e0444903fc52293750caca
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   ├── bb
+│   │   │   ├── 6fbe084dc9849ed23a36366b836ac957aca51c
+  [Error: 'utf-8' codec can't decode byte 0x9d in position 2: invalid start byte]
+│   │   │   └── 71506674cf5a07c249524635497256e1b88349
+  [Error: 'utf-8' codec can't decode byte 0xb2 in position 8: invalid start byte]
+│   │   ├── bc
+│   │   │   └── 779d096b5b362e54d94f5eada3307bc8fdae21
+  [Error: 'utf-8' codec can't decode byte 0xc8 in position 18: invalid continuation byte]
+│   │   ├── bd
+│   │   │   └── 6cc8b3ce211d5e4e4b42cc1688a4abb0cf6d4e
+  [Error: 'utf-8' codec can't decode byte 0xb5 in position 2: invalid start byte]
+│   │   ├── be
+│   │   │   ├── a250dfd6f277c612452aa2dfe2f5954c1495bd
+  [Error: 'utf-8' codec can't decode byte 0xc8 in position 18: invalid continuation byte]
+│   │   │   └── d463ab795cfb8cfe7ba4b953dc8e34da4196d6
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   ├── c2
+│   │   │   ├── 1d14f73b2261aa1acfb30bba08c2ef0d0e251b
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   │   ├── 8c46f58ef7b6c5892037539195e03c6015e084
+  [Error: 'utf-8' codec can't decode byte 0xc8 in position 18: invalid continuation byte]
+│   │   │   ├── ad699bd812a22c9d2bb995987d96123f98d314
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   │   ├── b1c72ec730321c5b6e2147d153c5884ab67b89
+  [Error: 'utf-8' codec can't decode byte 0xce in position 18: invalid continuation byte]
+│   │   │   └── bc1e0453e22717dc2ec25b52e5e51db8c0d2ed
+  [Error: 'utf-8' codec can't decode byte 0x8d in position 2: invalid start byte]
+│   │   ├── c3
+│   │   │   └── 9aeb457fe1d0916f5b6eba807785967ae17d2c
+  [Error: 'utf-8' codec can't decode byte 0xce in position 3: invalid continuation byte]
+│   │   ├── c5
+│   │   │   └── 46739c7bbf3f8905f65e75a31da31795759f5a
+  [Error: 'utf-8' codec can't decode byte 0xbd in position 16: invalid start byte]
+│   │   ├── c9
+│   │   │   ├── 0db6d68fa14cb60709fd2c367c95322aff46d0
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   │   ├── 8164a0ffbc3e6c5c5dea5d0d891adb928ecb49
+  [Error: 'utf-8' codec can't decode byte 0x95 in position 2: invalid start byte]
+│   │   │   └── f8ace768e4e115129a04faef28b5071f3cfab5
+  [Error: 'utf-8' codec can't decode byte 0xce in position 18: invalid continuation byte]
+│   │   ├── ca
+│   │   │   └── e2b33b7f37f6d53c238eb84ac0f191a0062b18
+  [Error: 'utf-8' codec can't decode byte 0xcd in position 19: invalid continuation byte]
+│   │   ├── cc
+│   │   │   └── d7de69440bd3a19df5291112c55910c0ae282f
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   ├── cd
+│   │   │   └── 0e2631bdf8dc4fd641de03df75454109b02d77
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   ├── ce
+│   │   │   └── 6ddb22ec04a88fc7e0bf3fc3cff654010ce107
+  [Error: 'utf-8' codec can't decode byte 0xb2 in position 8: invalid start byte]
+│   │   ├── d0
+│   │   │   ├── cd49189af0c7b5117a83b83bcd2e8aa833e63d
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 2: invalid start byte]
+│   │   │   └── ff542c065726b9f8a7b84f15fab3d2d0fa1441
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   ├── d2
+│   │   │   └── 5974f944247014f9f5f8342668d8c78df22bdb
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   ├── d3
+│   │   │   ├── 01ce1a3eb1ddaa0c47d92ba23ab4b43723fb88
+  [Error: 'utf-8' codec can't decode byte 0x90 in position 3: invalid start byte]
+│   │   │   └── 8ae275148dc57cc43d390264250d80348c760d
+  [Error: 'utf-8' codec can't decode byte 0x8d in position 2: invalid start byte]
+│   │   ├── d4
+│   │   │   └── 4abff399c5219d60ddfa33d15580f98908f3d5
+  [Error: 'utf-8' codec can't decode byte 0xb2 in position 8: invalid start byte]
+│   │   ├── d6
+│   │   │   ├── 03e98688ed4164b4fbb6e547f230e0dd204570
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   │   └── 3880acb718c6fb6e1caf3d668382049a3748ee
+  [Error: 'utf-8' codec can't decode byte 0x8f in position 3: invalid start byte]
+│   │   ├── d9
+│   │   │   └── c3573d5c9fa7d69c7c98d44c48a230b5bd7682
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   ├── db
+│   │   │   └── 1119f85fa1f9012b376f497ae325cf89ea98f2
+  [Error: 'utf-8' codec can't decode byte 0xcd in position 2: invalid continuation byte]
+│   │   ├── dd
+│   │   │   ├── 3d739eb1d7cc91fff6558bd6cf2b031e62b539
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   │   └── 92d268a5da833d61310d29ccfeb7dfb2da89d3
+  [Error: 'utf-8' codec can't decode byte 0xcd in position 19: invalid continuation byte]
+│   │   ├── df
+│   │   │   └── de9e2eb0337f13d9c7e417da50410f075a06f1
+  [Error: 'utf-8' codec can't decode byte 0xca in position 3: invalid continuation byte]
+│   │   ├── e0
+│   │   │   └── 994f1a904daf27ef4d5e0608360e5043a5ff2d
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   ├── e5
+│   │   │   └── db32ac14c3f15f919784b104ab04b81c4a65c1
+  [Error: 'utf-8' codec can't decode byte 0xbd in position 2: invalid start byte]
+│   │   ├── e6
+│   │   │   └── d1d497e547f646acfd04591de4ac747ce18cbd
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   ├── e7
+│   │   │   └── e2b717443b975d61c9782daf1281e2a35befe7
+  [Error: 'utf-8' codec can't decode byte 0xb5 in position 2: invalid start byte]
+│   │   ├── e8
+│   │   │   └── 24e188870897a6209ae858c87ebf5002aac2f8
+  [Error: 'utf-8' codec can't decode byte 0xb2 in position 8: invalid start byte]
+│   │   ├── e9
+│   │   │   ├── ab891e2d24ebb98181eb446b90f36b33389418
+  [Error: 'utf-8' codec can't decode byte 0xa5 in position 2: invalid start byte]
+│   │   │   └── d8edb2f1b4d884ae82d3bf00292e59c9669465
+  [Error: 'utf-8' codec can't decode byte 0xed in position 2: invalid continuation byte]
+│   │   ├── eb
+│   │   │   └── b5145ebb9d89c5448c91cd06da988785ef56f0
+  [Error: 'utf-8' codec can't decode byte 0xa5 in position 2: invalid start byte]
+│   │   ├── ec
+│   │   │   └── 97c1b65ea5e31d160acbeed70d6dc6ae0c7756
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   ├── ed
+│   │   │   └── 989fea8e7d954580ad728670c0faa2e84bbd82
+  [Error: 'utf-8' codec can't decode byte 0xb2 in position 8: invalid start byte]
+│   │   ├── ee
+│   │   │   └── 18c313ad103656107015341e1e5719199da8c0
+  [Error: 'utf-8' codec can't decode byte 0xc5 in position 2: invalid continuation byte]
+│   │   ├── ef
+│   │   │   └── a908c1bb8ce33d23bdecc0e298d866cc251a62
+  [Error: 'utf-8' codec can't decode byte 0xb5 in position 2: invalid start byte]
+│   │   ├── f0
+│   │   │   ├── 2205f4e0245b06927b6c967c3b619d843f70c5
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   │   └── a894996f729923dda11632e7aec2fb88cad873
+  [Error: 'utf-8' codec can't decode byte 0xad in position 2: invalid start byte]
+│   │   ├── f1
+│   │   │   └── 25e58ca6845a6ee30fb03873481c03530221a1
+  [Error: 'utf-8' codec can't decode byte 0xb0 in position 7: invalid start byte]
+│   │   ├── f2
+│   │   │   ├── 492e1d40ef52a704a015ac76c1f398876d35a5
+  [Error: 'utf-8' codec can't decode byte 0x95 in position 2: invalid start byte]
+│   │   │   └── 6c9ed36957262062a1c4ac80e304e639e7a9c4
+  [Error: 'utf-8' codec can't decode byte 0x8d in position 2: invalid start byte]
+│   │   ├── f6
+│   │   │   ├── 48e3dc52d69022df6f680b82e65efe89c04b62
+  [Error: 'utf-8' codec can't decode byte 0x95 in position 2: invalid start byte]
+│   │   │   └── f1686b292832d7eea6749d4e70ccdeca6e8bad
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   ├── f7
+│   │   │   ├── 81cc9c195986672c3630d995399bc0327cc826
+  [Error: 'utf-8' codec can't decode byte 0xc8 in position 18: invalid continuation byte]
+│   │   │   └── b5cb1a7827d8fc6ac4d04ed2f117709b94a9ae
+  [Error: 'utf-8' codec can't decode byte 0xce in position 19: invalid continuation byte]
+│   │   ├── f9
+│   │   │   └── 07b17f537210d1da9ca1df29e6cb20b59ca0e3
+  [Error: 'utf-8' codec can't decode byte 0x95 in position 2: invalid start byte]
+│   │   ├── fb
+│   │   │   └── 0ad101b4c0686d3dedf7f9514aeba2b3612091
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   ├── fc
+│   │   │   └── d6b6fc8573452249c39d729fbf7bd792951c7b
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   ├── fd
+│   │   │   └── 7b216714a6f640a6d0e2639f6abd6e3cfb9e66
+  [Error: 'utf-8' codec can't decode byte 0xc8 in position 18: invalid continuation byte]
+│   │   ├── fe
+│   │   │   └── 1b687d85c17c2de7543053c7f4ef52ad3fcd73
+  [Error: 'utf-8' codec can't decode byte 0xbd in position 16: invalid start byte]
+│   │   ├── info
+│   │   └── pack
+│   └── refs
+│       ├── heads
+│       │   └── main
+  5499de63e5bb25b2fe45927a22ed14b60664c6e7
+│       ├── remotes
+│       │   └── origin
+│       │       └── main
+  5499de63e5bb25b2fe45927a22ed14b60664c6e7
+│       └── tags
+├── .github
+│   └── workflows
+│       └── build.yml
+  name: Build Plugins
+  
+  on:
+    push:
+      branches: [ main, master ]
+    pull_request:
+      branches: [ main, master ]
+    workflow_dispatch:
+  
+  jobs:
+    build:
+      runs-on: ubuntu-latest
+  
+      steps:
+        - uses: actions/checkout@v4
+  
+        - name: Set up JDK 17
+          uses: actions/setup-java@v4
+          with:
+            distribution: temurin
+            java-version: '17'
+            cache: maven
+  
+        - name: Build all modules
+          run: mvn -B clean package --file pom.xml
+  
+        - name: Upload Velocity plugin
+          uses: actions/upload-artifact@v4
+          with:
+            name: velocity-logs-velocity
+            path: velocity-plugin/target/velocity-logs-velocity-*.jar
+            if-no-files-found: error
+  
+        - name: Upload Spigot plugin
+          uses: actions/upload-artifact@v4
+          with:
+            name: velocity-logs-spigot
+            path: spigot-plugin/target/velocity-logs-spigot-*.jar
+            if-no-files-found: error
+├── .gitignore
+  target/
+  .idea/
+  *.iml
+  *.log
+  .DS_Store
+  .vscode/
+├── LICENSE
+  MIT License
+  
+  Copyright (c) 2024 muvixo
+  
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+  
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+  
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+├── README.md
+  # VelocityLogs v2.0
+  
+  Logs **every command** any player types on any backend server and broadcasts
+  them to staff / OP players on the Velocity proxy.
+  
+  **Author:** muvixo
+  
+  ## What's new in v2.0
+  
+  - **Bulletproof OP detection** — OP status is attached to *every* command,
+    so it works even if the join message got lost.
+  - **UUID-based tracking** — no more name-change or case bugs.
+  - **`/logs op <player>` / `/logs unop <player>`** — manual overrides.
+  - **`/logs list`** — see all currently tracked OPs.
+  - **`force-see-players`** — a config list of players who always see logs.
+  
+  ## Commands (Velocity)
+  
+  | Command | Description |
+  |---------|-------------|
+  | `/logs` | Show plugin info |
+  | `/logs help` | Show help |
+  | `/logs reload` | Reload config |
+  | `/logs debug <player>` | Diagnose a player's permissions |
+  | `/logs status <player>` | Same as debug |
+  | `/logs op <player>` | Manually mark player as OP |
+  | `/logs unop <player>` | Manually unmark player |
+  | `/logs list` | List all tracked OPs |
+  
+  ## Build
+  
+  ```bash
+  mvn clean package
+  ```
+  
+  Outputs:
+  - `velocity-plugin/target/velocity-logs-velocity-2.0.0.jar`
+  - `spigot-plugin/target/velocity-logs-spigot-2.0.0.jar`
+├── ee.py
+  import os
+  
+  def print_tree(folder_path, file_handle, prefix="", show_content=False):
+      entries = sorted(os.listdir(folder_path))
+      for i, entry in enumerate(entries):
+          path = os.path.join(folder_path, entry)
+          is_last = i == len(entries) - 1
+          connector = "└── " if is_last else "├── "
+          file_handle.write(f"{prefix}{connector}{entry}\n")
+  
+          if os.path.isdir(path):
+              extension_prefix = "    " if is_last else "│   "
+              print_tree(path, file_handle, prefix + extension_prefix, show_content)
+          else:
+              if show_content:
+                  try:
+                      with open(path, "r", encoding="utf-8") as f:
+                          content = f.read().strip()
+                          if content:
+                              content_lines = content.splitlines()
+                              # Content appears directly under the file name
+                              for line in content_lines:
+                                  file_handle.write(f"  {line}\n")  # Just 2 spaces
+                  except Exception as e:
+                      file_handle.write(f"  [Error: {e}]\n")
+  
+  def save_tree_to_file(output_filename="folder_structure.txt"):
+      current_folder = os.path.dirname(os.path.abspath(__file__))
+      
+      with open(output_filename, "w", encoding="utf-8") as f:
+          f.write(f"{current_folder}/\n\n")
+          print_tree(current_folder, f, show_content=True)
+      
+      print(f"Output saved to {output_filename}")
+  
+  if __name__ == "__main__":
+      save_tree_to_file()
+├── folder_structure.txt
+├── pom.xml
+  <?xml version="1.0" encoding="UTF-8"?>
+  <project xmlns="http://maven.apache.org/POM/4.0.0"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                               http://maven.apache.org/xsd/maven-4.0.0.xsd">
+      <modelVersion>4.0.0</modelVersion>
+  
+      <groupId>ir.muvixo</groupId>
+      <artifactId>velocity-logs-parent</artifactId>
+      <version>2.0.0</version>
+      <packaging>pom</packaging>
+      <name>VelocityLogs Parent</name>
+  
+      <modules>
+          <module>velocity-plugin</module>
+          <module>spigot-plugin</module>
+      </modules>
+  
+      <properties>
+          <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+          <maven.compiler.source>17</maven.compiler.source>
+          <maven.compiler.target>17</maven.compiler.target>
+      </properties>
+  
+      <repositories>
+          <repository>
+              <id>papermc</id>
+              <url>https://repo.papermc.io/repository/maven-public/</url>
+          </repository>
+          <repository>
+              <id>spigot-repo</id>
+              <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
+          </repository>
+          <repository>
+              <id>sonatype</id>
+              <url>https://oss.sonatype.org/content/groups/public/</url>
+          </repository>
+      </repositories>
+  
+      <build>
+          <pluginManagement>
+              <plugins>
+                  <plugin>
+                      <groupId>org.apache.maven.plugins</groupId>
+                      <artifactId>maven-compiler-plugin</artifactId>
+                      <version>3.11.0</version>
+                  </plugin>
+                  <plugin>
+                      <groupId>org.apache.maven.plugins</groupId>
+                      <artifactId>maven-shade-plugin</artifactId>
+                      <version>3.5.1</version>
+                  </plugin>
+              </plugins>
+          </pluginManagement>
+      </build>
+  </project>
+├── spigot-plugin
+│   ├── pom.xml
+  <?xml version="1.0" encoding="UTF-8"?>
+  <project xmlns="http://maven.apache.org/POM/4.0.0">
+      <modelVersion>4.0.0</modelVersion>
+  
+      <parent>
+          <groupId>ir.muvixo</groupId>
+          <artifactId>velocity-logs-parent</artifactId>
+          <version>2.0.0</version>
+      </parent>
+  
+      <artifactId>velocity-logs-spigot</artifactId>
+      <packaging>jar</packaging>
+      <name>VelocityLogs (Spigot 1.8)</name>
+  
+      <dependencies>
+          <dependency>
+              <groupId>org.spigotmc</groupId>
+              <artifactId>spigot-api</artifactId>
+              <version>1.8.8-R0.1-SNAPSHOT</version>
+              <scope>provided</scope>
+          </dependency>
+      </dependencies>
+  
+      <build>
+          <finalName>${project.artifactId}-${project.version}</finalName>
+          <resources>
+              <resource>
+                  <directory>src/main/resources</directory>
+                  <filtering>true</filtering>
+                  <includes>
+                      <include>plugin.yml</include>
+                  </includes>
+              </resource>
+              <resource>
+                  <directory>src/main/resources</directory>
+                  <filtering>false</filtering>
+                  <excludes>
+                      <exclude>plugin.yml</exclude>
+                  </excludes>
+              </resource>
+          </resources>
+          <plugins>
+              <plugin>
+                  <groupId>org.apache.maven.plugins</groupId>
+                  <artifactId>maven-compiler-plugin</artifactId>
+                  <configuration>
+                      <source>1.8</source>
+                      <target>1.8</target>
+                  </configuration>
+              </plugin>
+          </plugins>
+      </build>
+  </project>
+│   └── src
+│       └── main
+│           ├── java
+│           │   └── ir
+│           │       └── muvixo
+│           │           └── logs
+│           │               └── spigot
+│           │                   ├── CommandInterceptor.java
+  package ir.muvixo.logs.spigot;
+  
+  import com.google.common.io.ByteArrayDataOutput;
+  import com.google.common.io.ByteStreams;
+  import org.bukkit.entity.Player;
+  import org.bukkit.event.EventHandler;
+  import org.bukkit.event.EventPriority;
+  import org.bukkit.event.Listener;
+  import org.bukkit.event.player.PlayerCommandPreprocessEvent;
+  import org.bukkit.event.player.PlayerJoinEvent;
+  import org.bukkit.event.player.PlayerQuitEvent;
+  
+  /**
+   * Intercepts commands and forwards them with OP status to Velocity.
+   *
+   * @author muvixo
+   */
+  public class CommandInterceptor implements Listener {
+  
+      private final SpigotLogs plugin;
+      private final Config config;
+  
+      public CommandInterceptor(SpigotLogs plugin, Config config) {
+          this.plugin = plugin;
+          this.config = config;
+      }
+  
+      @EventHandler(priority = EventPriority.MONITOR)
+      public void onJoin(PlayerJoinEvent event) {
+          if (!config.isReportOpStatus()) return;
+          Player player = event.getPlayer();
+          // Delay one tick to ensure the connection & channel are fully ready.
+          plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+              if (player.isOnline()) {
+                  plugin.sendOpStatus(player, player.isOp());
+              }
+          }, 20L);
+      }
+  
+      @EventHandler(priority = EventPriority.MONITOR)
+      public void onQuit(PlayerQuitEvent event) {
+          if (!config.isReportOpStatus()) return;
+          if (event.getPlayer().isOp()) {
+              plugin.sendOpStatus(event.getPlayer(), false);
+          }
+      }
+  
+      @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+      public void onCommand(PlayerCommandPreprocessEvent event) {
+          Player player = event.getPlayer();
+  
+          if (!config.isLogOps() && player.isOp()) return;
+          if (config.isIgnoredPlayer(player.getName())) return;
+  
+          String full = event.getMessage();
+          if (full == null || full.isEmpty() || full.charAt(0) != '/') return;
+  
+          String command = full.substring(1).trim();
+          if (command.isEmpty()) return;
+          if (config.isBlacklisted(command)) return;
+  
+          try {
+              ByteArrayDataOutput out = ByteStreams.newDataOutput();
+              out.writeUTF("CMD");
+              out.writeUTF(player.getUniqueId().toString());
+              out.writeUTF(player.getName());
+              out.writeUTF(config.getServerName());
+              out.writeUTF(Boolean.toString(player.isOp()));
+              out.writeUTF(command);
+              player.sendPluginMessage(plugin, config.getChannel(), out.toByteArray());
+          } catch (Exception e) {
+              plugin.getLogger().warning("Failed to forward command: " + e.getMessage());
+          }
+      }
+  }
+│           │                   ├── Config.java
+  package ir.muvixo.logs.spigot;
+  
+  import org.bukkit.configuration.file.FileConfiguration;
+  
+  import java.util.ArrayList;
+  import java.util.List;
+  import java.util.Locale;
+  import java.util.stream.Collectors;
+  
+  /**
+   * Config wrapper for SpigotLogs v2.0.
+   *
+   * @author muvixo
+   */
+  public class Config {
+  
+      private final SpigotLogs plugin;
+  
+      private String channel;
+      private String serverName;
+      private boolean logOps;
+      private boolean reportOpStatus;
+      private int opStatusIntervalMinutes;
+      private List<String> blacklist;
+      private List<String> ignoredPlayers;
+  
+      public Config(SpigotLogs plugin) {
+          this.plugin = plugin;
+      }
+  
+      public void load() {
+          plugin.reloadConfig();
+          FileConfiguration cfg = plugin.getConfig();
+  
+          this.channel = cfg.getString("channel", "velocitylogs:main");
+          this.logOps = cfg.getBoolean("log-ops", true);
+          this.reportOpStatus = cfg.getBoolean("report-op-status", true);
+          this.opStatusIntervalMinutes = cfg.getInt("op-status-interval-minutes", 5);
+  
+          String configured = cfg.getString("server-name", "");
+          if (configured != null && !configured.trim().isEmpty()) {
+              this.serverName = configured.trim();
+          } else {
+              String bukkit = plugin.getServer().getServerName();
+              if (bukkit == null || bukkit.isEmpty()
+                      || bukkit.equalsIgnoreCase("Unknown Server")) {
+                  this.serverName = "server-" + plugin.getServer().getPort();
+              } else {
+                  this.serverName = bukkit;
+              }
+          }
+  
+          List<String> rawBlacklist = cfg.getStringList("blacklist");
+          if (rawBlacklist == null) rawBlacklist = new ArrayList<>();
+          this.blacklist = rawBlacklist.stream()
+                  .filter(s -> s != null)
+                  .map(s -> s.toLowerCase(Locale.ROOT).trim())
+                  .collect(Collectors.toList());
+  
+          List<String> rawIgnored = cfg.getStringList("ignored-players");
+          if (rawIgnored == null) rawIgnored = new ArrayList<>();
+          this.ignoredPlayers = rawIgnored.stream()
+                  .filter(s -> s != null)
+                  .map(s -> s.toLowerCase(Locale.ROOT).trim())
+                  .collect(Collectors.toList());
+      }
+  
+      public String getChannel() { return channel; }
+      public String getServerName() { return serverName; }
+      public boolean isLogOps() { return logOps; }
+      public boolean isReportOpStatus() { return reportOpStatus; }
+      public int getOpStatusIntervalMinutes() { return opStatusIntervalMinutes; }
+  
+      public boolean isBlacklisted(String command) {
+          String base = command.split(" ", 2)[0].toLowerCase(Locale.ROOT);
+          return blacklist.contains(base);
+      }
+  
+      public boolean isIgnoredPlayer(String playerName) {
+          return ignoredPlayers.contains(playerName.toLowerCase(Locale.ROOT));
+      }
+  }
+│           │                   └── SpigotLogs.java
+  package ir.muvixo.logs.spigot;
+  
+  import com.google.common.io.ByteArrayDataOutput;
+  import com.google.common.io.ByteStreams;
+  import org.bukkit.entity.Player;
+  import org.bukkit.plugin.java.JavaPlugin;
+  
+  /**
+   * SpigotLogs v2.0 - forwards every command to the Velocity proxy.
+   * Works on Minecraft 1.8.8 / 1.8.9.
+   *
+   * @author muvixo
+   */
+  public class SpigotLogs extends JavaPlugin {
+  
+      private Config config;
+  
+      @Override
+      public void onEnable() {
+          saveDefaultConfig();
+          this.config = new Config(this);
+          this.config.load();
+  
+          getServer().getMessenger().registerOutgoingPluginChannel(this, config.getChannel());
+          getServer().getPluginManager().registerEvents(new CommandInterceptor(this, config), this);
+  
+          long intervalTicks = config.getOpStatusIntervalMinutes() * 60L * 20L;
+          if (intervalTicks > 0) {
+              getServer().getScheduler().runTaskTimer(this, () -> {
+                  for (Player p : getServer().getOnlinePlayers()) {
+                      if (p.isOp()) sendOpStatus(p, true);
+                  }
+              }, intervalTicks, intervalTicks);
+          }
+  
+          getLogger().info("===========================================");
+          getLogger().info("  VelocityLogs-Spigot v" + getDescription().getVersion());
+          getLogger().info("  Channel: " + config.getChannel());
+          getLogger().info("  Server name: " + config.getServerName());
+          getLogger().info("  Report OP: " + config.isReportOpStatus());
+          getLogger().info("===========================================");
+      }
+  
+      @Override
+      public void onDisable() {
+          try {
+              getServer().getMessenger().unregisterOutgoingPluginChannel(this);
+          } catch (Exception ignored) {}
+          getLogger().info("VelocityLogs-Spigot disabled.");
+      }
+  
+      public void sendOpStatus(Player player, boolean isOp) {
+          try {
+              ByteArrayDataOutput out = ByteStreams.newDataOutput();
+              out.writeUTF("OP_STATUS");
+              out.writeUTF(player.getUniqueId().toString());
+              out.writeUTF(player.getName());
+              out.writeUTF(config.getServerName());
+              out.writeUTF(Boolean.toString(isOp));
+              player.sendPluginMessage(this, config.getChannel(), out.toByteArray());
+          } catch (Exception e) {
+              getLogger().warning("Failed to send OP_STATUS: " + e.getMessage());
+          }
+      }
+  
+      public Config getPluginConfig() {
+          return config;
+      }
+  }
+│           └── resources
+│               ├── config.yml
+  # ============================================================
+  #  VelocityLogs-Spigot v2.0 - backend config
+  #  Author: muvixo
+  # ============================================================
+  
+  # Plugin messaging channel. MUST match the Velocity side.
+  channel: "velocitylogs:main"
+  
+  # Name of this backend server.
+  # Leave empty to auto-detect.
+  server-name: ""
+  
+  # Send commands to the proxy even for OP players?
+  log-ops: true
+  
+  # Send OP status to the proxy on player join AND with every command?
+  report-op-status: true
+  
+  # Also report OP status periodically (safety net).
+  op-status-interval-minutes: 5
+  
+  # Hide these commands from being forwarded.
+  blacklist:
+    - "login"
+    - "register"
+    - "changepassword"
+  
+  # Ignore commands from these players entirely.
+  ignored-players: []
+│               └── plugin.yml
+  name: VelocityLogs-Spigot
+  main: ir.muvixo.logs.spigot.SpigotLogs
+  version: ${project.version}
+  author: muvixo
+  description: Forwards every command executed by players to the Velocity proxy
+  api-version: 1.8
+└── velocity-plugin
+    ├── pom.xml
+  <?xml version="1.0" encoding="UTF-8"?>
+  <project xmlns="http://maven.apache.org/POM/4.0.0">
+      <modelVersion>4.0.0</modelVersion>
+  
+      <parent>
+          <groupId>ir.muvixo</groupId>
+          <artifactId>velocity-logs-parent</artifactId>
+          <version>2.0.0</version>
+      </parent>
+  
+      <artifactId>velocity-logs-velocity</artifactId>
+      <packaging>jar</packaging>
+      <name>VelocityLogs (Velocity)</name>
+  
+      <dependencies>
+          <dependency>
+              <groupId>com.velocitypowered</groupId>
+              <artifactId>velocity-api</artifactId>
+              <version>3.3.0-SNAPSHOT</version>
+              <scope>provided</scope>
+          </dependency>
+          <dependency>
+              <groupId>org.spongepowered</groupId>
+              <artifactId>configurate-yaml</artifactId>
+              <version>4.1.2</version>
+          </dependency>
+      </dependencies>
+  
+      <build>
+          <finalName>${project.artifactId}-${project.version}</finalName>
+          <resources>
+              <resource>
+                  <directory>src/main/resources</directory>
+                  <filtering>true</filtering>
+                  <includes>
+                      <include>velocity-plugin.json</include>
+                  </includes>
+              </resource>
+              <resource>
+                  <directory>src/main/resources</directory>
+                  <filtering>false</filtering>
+                  <excludes>
+                      <exclude>velocity-plugin.json</exclude>
+                  </excludes>
+              </resource>
+          </resources>
+          <plugins>
+              <plugin>
+                  <groupId>org.apache.maven.plugins</groupId>
+                  <artifactId>maven-compiler-plugin</artifactId>
+                  <configuration>
+                      <release>17</release>
+                  </configuration>
+              </plugin>
+  
+              <plugin>
+                  <groupId>org.apache.maven.plugins</groupId>
+                  <artifactId>maven-shade-plugin</artifactId>
+                  <executions>
+                      <execution>
+                          <phase>package</phase>
+                          <goals><goal>shade</goal></goals>
+                          <configuration>
+                              <createDependencyReducedPom>false</createDependencyReducedPom>
+  
+                              <filters>
+                                  <filter>
+                                      <artifact>*:*</artifact>
+                                      <excludes>
+                                          <exclude>META-INF/*.SF</exclude>
+                                          <exclude>META-INF/*.DSA</exclude>
+                                          <exclude>META-INF/*.RSA</exclude>
+                                          <exclude>META-INF/*.EC</exclude>
+                                          <exclude>META-INF/MANIFEST.MF</exclude>
+                                          <exclude>module-info.class</exclude>
+                                          <exclude>META-INF/versions/*/module-info.class</exclude>
+                                      </excludes>
+                                  </filter>
+                              </filters>
+  
+                              <relocations>
+                                  <relocation>
+                                      <pattern>org.spongepowered.configurate</pattern>
+                                      <shadedPattern>ir.muvixo.logs.libs.configurate</shadedPattern>
+                                  </relocation>
+                                  <relocation>
+                                      <pattern>io.leangen.geantyref</pattern>
+                                      <shadedPattern>ir.muvixo.logs.libs.geantyref</shadedPattern>
+                                  </relocation>
+                                  <relocation>
+                                      <pattern>org.yaml.snakeyaml</pattern>
+                                      <shadedPattern>ir.muvixo.logs.libs.snakeyaml</shadedPattern>
+                                  </relocation>
+                              </relocations>
+                          </configuration>
+                      </execution>
+                  </executions>
+              </plugin>
+          </plugins>
+      </build>
+  </project>
+    └── src
+        └── main
+            ├── java
+            │   └── ir
+            │       └── muvixo
+            │           └── logs
+            │               └── velocity
+            │                   ├── BackendMessageReceiver.java
+  package ir.muvixo.logs.velocity;
+  
+  import com.google.common.io.ByteArrayDataInput;
+  import com.google.common.io.ByteStreams;
+  import com.velocitypowered.api.event.Subscribe;
+  import com.velocitypowered.api.event.connection.PluginMessageEvent;
+  import com.velocitypowered.api.proxy.Player;
+  import com.velocitypowered.api.proxy.ProxyServer;
+  import com.velocitypowered.api.proxy.ServerConnection;
+  import com.velocitypowered.api.proxy.messages.MinecraftChannelIdentifier;
+  import net.kyori.adventure.text.Component;
+  import org.slf4j.Logger;
+  
+  import java.time.LocalTime;
+  import java.time.format.DateTimeFormatter;
+  import java.util.Optional;
+  import java.util.UUID;
+  
+  /**
+   * Receives plugin messages from Spigot backends.
+   *
+   * v2.0 message protocol:
+   *   OP_STATUS -> "OP_STATUS" | uuid | name | server | isOp
+   *   CMD       -> "CMD"       | uuid | name | server | isOp | command
+   *
+   * The OP flag is included in every CMD message, so OP detection works
+   * even if the join-time OP_STATUS message was lost.
+   *
+   * @author muvixo
+   */
+  public class BackendMessageReceiver {
+  
+      private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm:ss");
+  
+      private final ProxyServer server;
+      private final Logger logger;
+      private final Config config;
+      private final OpPlayerManager opManager;
+      private final PermissionChecker permChecker;
+      private final MinecraftChannelIdentifier channel;
+  
+      public BackendMessageReceiver(ProxyServer server, Logger logger, Config config,
+                                    OpPlayerManager opManager, PermissionChecker permChecker) {
+          this.server = server;
+          this.logger = logger;
+          this.config = config;
+          this.opManager = opManager;
+          this.permChecker = permChecker;
+          this.channel = MinecraftChannelIdentifier.from(config.getChannel());
+      }
+  
+      @Subscribe
+      public void onPluginMessage(PluginMessageEvent event) {
+          if (!event.getIdentifier().equals(channel)) return;
+          event.setResult(PluginMessageEvent.ForwardResult.handled());
+  
+          if (!(event.getSource() instanceof ServerConnection connection)) return;
+          String sourceServer = connection.getServerInfo().getName();
+  
+          try {
+              ByteArrayDataInput in = ByteStreams.newDataInput(event.getData());
+              String type = in.readUTF();
+  
+              if ("OP_STATUS".equals(type)) {
+                  UUID uuid = UUID.fromString(in.readUTF());
+                  String name = in.readUTF();
+                  String serverName = in.readUTF();
+                  boolean isOp = Boolean.parseBoolean(in.readUTF());
+  
+                  if (isOp) opManager.markOp(uuid, name, serverName);
+                  else      opManager.unmarkOp(uuid, name);
+  
+                  if (config.isDebug()) {
+                      logger.info("[OP-TRACK] {} -> {} (from {})", name, isOp, serverName);
+                  }
+              } else if ("CMD".equals(type)) {
+                  UUID uuid = UUID.fromString(in.readUTF());
+                  String name = in.readUTF();
+                  String serverName = in.readUTF();
+                  boolean isOp = Boolean.parseBoolean(in.readUTF());
+                  String command = in.readUTF();
+  
+                  // Refresh OP status from every command (bulletproof)
+                  if (isOp) opManager.markOp(uuid, name, serverName);
+  
+                  broadcast(name, serverName, command);
+              } else {
+                  logger.warn("[VelocityLogs] Unknown message type: {}", type);
+              }
+          } catch (Exception e) {
+              logger.warn("[VelocityLogs] Failed to decode plugin message from {}", sourceServer, e);
+          }
+      }
+  
+      private void broadcast(String playerName, String serverName, String command) {
+          String time = LocalTime.now().format(TIME_FORMAT);
+          String raw = config.getMessageFormat()
+                  .replace("{player}", playerName)
+                  .replace("{server}", serverName)
+                  .replace("{command}", command)
+                  .replace("{time}", time);
+          Component message = ColorUtil.color(raw);
+  
+          int total = 0, sent = 0;
+          for (Player online : server.getAllPlayers()) {
+              total++;
+              boolean canSee = permChecker.canSee(online);
+              boolean isSelf = config.isShowToSelf()
+                      && online.getUsername().equalsIgnoreCase(playerName);
+  
+              if (canSee || isSelf) {
+                  online.sendMessage(message);
+                  sent++;
+              }
+              if (config.isDebug() && online.getUsername().equalsIgnoreCase(playerName)) {
+                  logger.info("[DEBUG] Executor {} -> canSee={}, isSelf={}, opTracked={}",
+                          playerName, canSee, isSelf,
+                          opManager.isOp(online.getUniqueId()));
+              }
+          }
+  
+          if (config.isLogToConsole()) {
+              logger.info("[{}@{}] /{}  (online: {}, sent: {}, tracked-ops: {})",
+                      playerName, serverName, command, total, sent, opManager.getOpCount());
+          }
+      }
+  }
+            │                   ├── ColorUtil.java
+  package ir.muvixo.logs.velocity;
+  
+  import net.kyori.adventure.text.Component;
+  import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+  
+  import java.util.regex.Matcher;
+  import java.util.regex.Pattern;
+  
+  /**
+   * Color utility: legacy (&a, &c) + hex (&#RRGGBB).
+   *
+   * @author muvixo
+   */
+  public final class ColorUtil {
+  
+      private static final Pattern HEX_PATTERN = Pattern.compile("&#([A-Fa-f0-9]{6})");
+  
+      private ColorUtil() {}
+  
+      public static Component color(String text) {
+          if (text == null) return Component.empty();
+          String withHex = translateHex(text);
+          return LegacyComponentSerializer.legacyAmpersand().deserialize(withHex);
+      }
+  
+      private static String translateHex(String message) {
+          Matcher matcher = HEX_PATTERN.matcher(message);
+          StringBuffer buffer = new StringBuffer();
+  
+          while (matcher.find()) {
+              String hex = matcher.group(1);
+              StringBuilder replacement = new StringBuilder("\u00a7x");
+              for (char c : hex.toCharArray()) {
+                  replacement.append("\u00a7").append(c);
+              }
+              matcher.appendReplacement(buffer, replacement.toString());
+          }
+          matcher.appendTail(buffer);
+          return buffer.toString();
+      }
+  }
+            │                   ├── Config.java
+  package ir.muvixo.logs.velocity;
+  
+  import org.slf4j.Logger;
+  import org.spongepowered.configurate.CommentedConfigurationNode;
+  import org.spongepowered.configurate.serialize.SerializationException;
+  import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
+  
+  import java.io.IOException;
+  import java.io.InputStream;
+  import java.nio.file.Files;
+  import java.nio.file.Path;
+  import java.util.ArrayList;
+  import java.util.List;
+  import java.util.Locale;
+  import java.util.stream.Collectors;
+  
+  /**
+   * Config manager for VelocityLogs v2.0.
+   *
+   * @author muvixo
+   */
+  public class Config {
+  
+      private final Path dataDirectory;
+      private final Logger logger;
+  
+      private String channel;
+      private String seePermission;
+      private String reloadPermission;
+      private String adminPermission;
+      private List<String> extraSeePermissions;
+      private List<String> forceSeePlayers;
+      private String messageFormat;
+      private String reloadSuccessMessage;
+      private String noPermissionMessage;
+      private boolean showToSelf;
+      private boolean logToConsole;
+      private boolean debug;
+      private int opCacheExpireMinutes;
+  
+      public Config(Path dataDirectory, Logger logger) {
+          this.dataDirectory = dataDirectory;
+          this.logger = logger;
+      }
+  
+      public void load() {
+          Path file = dataDirectory.resolve("config.yml");
+  
+          if (!Files.exists(file)) {
+              try (InputStream in = getClass().getResourceAsStream("/config.yml")) {
+                  if (in != null) Files.copy(in, file);
+                  else Files.writeString(file, "# default config\n");
+              } catch (IOException e) {
+                  logger.error("Could not save default config", e);
+              }
+          }
+  
+          CommentedConfigurationNode root;
+          try {
+              root = YamlConfigurationLoader.builder().path(file).build().load();
+          } catch (IOException e) {
+              logger.error("Could not load config.yml", e);
+              return;
+          }
+  
+          this.channel = root.node("channel").getString("velocitylogs:main");
+          this.seePermission = root.node("see-permission").getString("velocitylogs.see");
+          this.reloadPermission = root.node("reload-permission").getString("velocitylogs.reload");
+          this.adminPermission = root.node("admin-permission").getString("velocitylogs.admin");
+  
+          // --- FIX: getList() throws SerializationException, wrap it ---
+          List<String> extras = safeGetList(root, "extra-see-permissions");
+          this.extraSeePermissions = extras;
+  
+          List<String> force = safeGetList(root, "force-see-players");
+          this.forceSeePlayers = force.stream()
+                  .filter(s -> s != null && !s.isEmpty())
+                  .map(s -> s.toLowerCase(Locale.ROOT).trim())
+                  .collect(Collectors.toList());
+  
+          this.showToSelf = root.node("show-to-self").getBoolean(false);
+          this.logToConsole = root.node("log-to-console").getBoolean(true);
+          this.debug = root.node("debug").getBoolean(true);
+          this.opCacheExpireMinutes = root.node("op-cache-expire-minutes").getInt(30);
+  
+          this.messageFormat = root.node("message-format").getString(
+                  "&8[&cLogs&8] &e{player} &8>> &b{server} &8>> &f/{command}");
+          this.reloadSuccessMessage = root.node("reload-success-message").getString(
+                  "&a[OK] Config reloaded successfully!");
+          this.noPermissionMessage = root.node("no-permission-message").getString(
+                  "&c[!] You don't have permission to do that!");
+      }
+  
+      /**
+       * Safely reads a list of strings from config, swallowing SerializationException.
+       */
+      private List<String> safeGetList(CommentedConfigurationNode root, String key) {
+          try {
+              List<String> list = root.node(key).getList(String.class);
+              return list == null ? new ArrayList<>() : list;
+          } catch (SerializationException e) {
+              logger.warn("Could not read list '{}' from config: {}", key, e.getMessage());
+              return new ArrayList<>();
+          }
+      }
+  
+      public String getChannel() { return channel; }
+      public String getSeePermission() { return seePermission; }
+      public String getReloadPermission() { return reloadPermission; }
+      public String getAdminPermission() { return adminPermission; }
+      public List<String> getExtraSeePermissions() { return extraSeePermissions; }
+      public List<String> getForceSeePlayers() { return forceSeePlayers; }
+      public String getMessageFormat() { return messageFormat; }
+      public String getReloadSuccessMessage() { return reloadSuccessMessage; }
+      public String getNoPermissionMessage() { return noPermissionMessage; }
+      public boolean isShowToSelf() { return showToSelf; }
+      public boolean isLogToConsole() { return logToConsole; }
+      public boolean isDebug() { return debug; }
+      public int getOpCacheExpireMinutes() { return opCacheExpireMinutes; }
+  
+      public boolean isForceSee(String playerName) {
+          if (playerName == null || forceSeePlayers == null) return false;
+          return forceSeePlayers.contains(playerName.toLowerCase(Locale.ROOT));
+      }
+  }
+            │                   ├── LogsCommand.java
+  package ir.muvixo.logs.velocity;
+  
+  import com.velocitypowered.api.command.CommandSource;
+  import com.velocitypowered.api.command.SimpleCommand;
+  import com.velocitypowered.api.proxy.Player;
+  import com.velocitypowered.api.proxy.ProxyServer;
+  import net.kyori.adventure.text.Component;
+  import net.kyori.adventure.text.format.NamedTextColor;
+  import org.slf4j.Logger;
+  
+  import java.util.ArrayList;
+  import java.util.List;
+  import java.util.Map;
+  import java.util.Optional;
+  import java.util.UUID;
+  
+  /**
+   * /logs command with info, help, reload, debug, op, unop, list.
+   *
+   * @author muvixo
+   */
+  public class LogsCommand implements SimpleCommand {
+  
+      private final ProxyServer server;
+      private final Logger logger;
+      private final Config config;
+      private final OpPlayerManager opManager;
+      private final PermissionChecker permChecker;
+  
+      public LogsCommand(ProxyServer server, Logger logger, Config config,
+                         OpPlayerManager opManager, PermissionChecker permChecker) {
+          this.server = server;
+          this.logger = logger;
+          this.config = config;
+          this.opManager = opManager;
+          this.permChecker = permChecker;
+      }
+  
+      @Override
+      public void execute(Invocation invocation) {
+          CommandSource source = invocation.source();
+          String[] args = invocation.arguments();
+  
+          if (args.length == 0) { sendInfo(source); return; }
+  
+          String sub = args[0].toLowerCase();
+  
+          switch (sub) {
+              case "reload":
+                  if (!canReload(source)) { noPerm(source); return; }
+                  config.load();
+                  source.sendMessage(ColorUtil.color(config.getReloadSuccessMessage()));
+                  logger.info("Config reloaded by {}", source);
+                  return;
+  
+              case "help":
+                  sendHelp(source);
+                  return;
+  
+              case "list": {
+                  if (!canReload(source)) { noPerm(source); return; }
+                  sendOpList(source);
+                  return;
+              }
+  
+              case "debug":
+              case "status": {
+                  if (!canReload(source)) { noPerm(source); return; }
+                  if (args.length < 2) {
+                      source.sendMessage(Component.text("Usage: /logs " + sub + " <player>", NamedTextColor.RED));
+                      return;
+                  }
+                  Optional<Player> opt = server.getPlayer(args[1]);
+                  if (opt.isEmpty()) {
+                      source.sendMessage(Component.text("Player not found: " + args[1], NamedTextColor.RED));
+                      return;
+                  }
+                  String report = permChecker.explain(opt.get());
+                  for (String line : report.split("\n")) {
+                      source.sendMessage(Component.text(line, NamedTextColor.GRAY));
+                  }
+                  return;
+              }
+  
+              case "op": {
+                  if (!canReload(source)) { noPerm(source); return; }
+                  if (args.length < 2) {
+                      source.sendMessage(Component.text("Usage: /logs op <player>", NamedTextColor.RED));
+                      return;
+                  }
+                  Optional<Player> opt = server.getPlayer(args[1]);
+                  if (opt.isEmpty()) {
+                      source.sendMessage(Component.text("Player not found: " + args[1], NamedTextColor.RED));
+                      return;
+                  }
+                  Player p = opt.get();
+                  opManager.markOpManual(p.getUniqueId(), p.getUsername());
+                  source.sendMessage(Component.text("[OK] ", NamedTextColor.GREEN)
+                          .append(Component.text(p.getUsername() + " marked as OP.", NamedTextColor.WHITE)));
+                  return;
+              }
+  
+              case "unop": {
+                  if (!canReload(source)) { noPerm(source); return; }
+                  if (args.length < 2) {
+                      source.sendMessage(Component.text("Usage: /logs unop <player>", NamedTextColor.RED));
+                      return;
+                  }
+                  Optional<Player> opt = server.getPlayer(args[1]);
+                  if (opt.isEmpty()) {
+                      source.sendMessage(Component.text("Player not found: " + args[1], NamedTextColor.RED));
+                      return;
+                  }
+                  Player p = opt.get();
+                  opManager.unmarkOp(p.getUniqueId(), p.getUsername());
+                  source.sendMessage(Component.text("[OK] ", NamedTextColor.GREEN)
+                          .append(Component.text(p.getUsername() + " unmarked.", NamedTextColor.WHITE)));
+                  return;
+              }
+  
+              default:
+                  sendInfo(source);
+          }
+      }
+  
+      private void sendInfo(CommandSource source) {
+          source.sendMessage(Component.text("VelocityLogs ", NamedTextColor.GOLD)
+                  .append(Component.text("v2.0.0 ", NamedTextColor.YELLOW))
+                  .append(Component.text("by muvixo", NamedTextColor.AQUA)));
+          source.sendMessage(Component.text("Channel: ", NamedTextColor.GRAY)
+                  .append(Component.text(config.getChannel(), NamedTextColor.WHITE)));
+          source.sendMessage(Component.text("See permission: ", NamedTextColor.GRAY)
+                  .append(Component.text(config.getSeePermission(), NamedTextColor.WHITE)));
+          source.sendMessage(Component.text("Tracked OPs: ", NamedTextColor.GRAY)
+                  .append(Component.text(String.valueOf(opManager.getOpCount()), NamedTextColor.WHITE)));
+          source.sendMessage(Component.text("Type ", NamedTextColor.GRAY)
+                  .append(Component.text("/logs help", NamedTextColor.YELLOW))
+                  .append(Component.text(" for help.", NamedTextColor.GRAY)));
+      }
+  
+      private void sendHelp(CommandSource source) {
+          source.sendMessage(Component.text("--- VelocityLogs Help ---", NamedTextColor.GOLD));
+          row(source, "/logs", "show plugin info");
+          row(source, "/logs help", "this help menu");
+          row(source, "/logs reload", "reload config");
+          row(source, "/logs debug <player>", "diagnose player");
+          row(source, "/logs status <player>", "same as debug");
+          row(source, "/logs op <player>", "mark player as OP");
+          row(source, "/logs unop <player>", "unmark player");
+          row(source, "/logs list", "list tracked OPs");
+      }
+  
+      private void row(CommandSource source, String cmd, String desc) {
+          source.sendMessage(Component.text(cmd, NamedTextColor.YELLOW)
+                  .append(Component.text("  - " + desc, NamedTextColor.GRAY)));
+      }
+  
+      private void sendOpList(CommandSource source) {
+          Map<UUID, OpPlayerManager.OpRecord> ops = opManager.getOpPlayers();
+          source.sendMessage(Component.text("--- Tracked OPs (" + ops.size() + ") ---", NamedTextColor.GOLD));
+          if (ops.isEmpty()) {
+              source.sendMessage(Component.text("  (none)", NamedTextColor.GRAY));
+              return;
+          }
+          long now = System.currentTimeMillis();
+          for (OpPlayerManager.OpRecord r : ops.values()) {
+              long ageSec = (now - r.lastSeen) / 1000;
+              String line = String.format("  %s | server=%s | manual=%s | lastSeen=%ds ago",
+                      r.name, r.serverName, r.manual, ageSec);
+              source.sendMessage(Component.text(line, NamedTextColor.GRAY));
+          }
+      }
+  
+      private void noPerm(CommandSource source) {
+          source.sendMessage(ColorUtil.color(config.getNoPermissionMessage()));
+      }
+  
+      private boolean canReload(CommandSource source) {
+          if (!(source instanceof Player player)) return true; // console always allowed
+          if (player.hasPermission(config.getReloadPermission())) return true;
+          if (player.hasPermission(config.getAdminPermission())) return true;
+          return permChecker.canReload(player);
+      }
+  
+      @Override
+      public boolean hasPermission(Invocation invocation) {
+          return true;
+      }
+  
+      @Override
+      public List<String> suggest(Invocation invocation) {
+          String[] args = invocation.arguments();
+          if (args.length <= 1) {
+              return List.of("reload", "help", "debug", "status", "op", "unop", "list");
+          }
+          String sub = args[0].toLowerCase();
+          if (args.length == 2 && (sub.equals("debug") || sub.equals("status")
+                  || sub.equals("op") || sub.equals("unop"))) {
+              List<String> names = new ArrayList<>();
+              for (Player p : server.getAllPlayers()) names.add(p.getUsername());
+              return names;
+          }
+          return List.of();
+      }
+  }
+            │                   ├── OpPlayerManager.java
+  package ir.muvixo.logs.velocity;
+  
+  import com.velocitypowered.api.event.Subscribe;
+  import com.velocitypowered.api.event.connection.DisconnectEvent;
+  import com.velocitypowered.api.event.player.ServerPostConnectEvent;
+  import com.velocitypowered.api.proxy.ProxyServer;
+  import org.slf4j.Logger;
+  
+  import java.util.Map;
+  import java.util.UUID;
+  import java.util.concurrent.ConcurrentHashMap;
+  
+  /**
+   * Tracks players who are OP on their current backend.
+   *
+   * v2.0 changes:
+   *   - UUID-based tracking
+   *   - lastSeen timestamp so we can expire stale entries
+   *   - manualOverride flag for /logs op
+   *
+   * @author muvixo
+   */
+  public class OpPlayerManager {
+  
+      public static class OpRecord {
+          public final UUID uuid;
+          public volatile String name;
+          public volatile String serverName;
+          public volatile long lastSeen;
+          public volatile boolean manual;
+  
+          public OpRecord(UUID uuid, String name, String serverName, boolean manual) {
+              this.uuid = uuid;
+              this.name = name;
+              this.serverName = serverName;
+              this.lastSeen = System.currentTimeMillis();
+              this.manual = manual;
+          }
+  
+          public void refresh(String serverName) {
+              this.serverName = serverName;
+              this.lastSeen = System.currentTimeMillis();
+          }
+      }
+  
+      private final ProxyServer server;
+      private final Logger logger;
+      private final Config config;
+      private final Map<UUID, OpRecord> opPlayers = new ConcurrentHashMap<>();
+      private final Map<String, UUID> nameIndex = new ConcurrentHashMap<>();
+  
+      public OpPlayerManager(ProxyServer server, Logger logger, Config config) {
+          this.server = server;
+          this.logger = logger;
+          this.config = config;
+      }
+  
+      public void markOp(UUID uuid, String playerName, String serverName) {
+          OpRecord existing = opPlayers.get(uuid);
+          if (existing != null) {
+              existing.refresh(serverName);
+              existing.name = playerName;
+              return;
+          }
+          OpRecord rec = new OpRecord(uuid, playerName, serverName, false);
+          opPlayers.put(uuid, rec);
+          nameIndex.put(playerName.toLowerCase(), uuid);
+          if (logger != null) {
+              logger.info("[OP-TRACK] Marked {} ({}) as OP (backend: {})",
+                      playerName, uuid, serverName);
+          }
+      }
+  
+      public void markOpManual(UUID uuid, String playerName) {
+          OpRecord rec = new OpRecord(uuid, playerName, "manual", true);
+          opPlayers.put(uuid, rec);
+          nameIndex.put(playerName.toLowerCase(), uuid);
+          if (logger != null) {
+              logger.info("[OP-TRACK] Manually marked {} ({}) as OP", playerName, uuid);
+          }
+      }
+  
+      public void unmarkOp(UUID uuid, String playerName) {
+          OpRecord removed = opPlayers.remove(uuid);
+          if (playerName != null) nameIndex.remove(playerName.toLowerCase());
+          if (removed != null && logger != null) {
+              logger.info("[OP-TRACK] Unmarked {} ({})", playerName, uuid);
+          }
+      }
+  
+      public boolean isOp(UUID uuid) {
+          if (uuid == null) return false;
+          OpRecord rec = opPlayers.get(uuid);
+          if (rec == null) return false;
+          // expire stale non-manual entries when player is offline
+          int expire = config != null ? config.getOpCacheExpireMinutes() : 30;
+          if (expire > 0 && !rec.manual) {
+              boolean online = server.getPlayer(uuid).isPresent();
+              long age = System.currentTimeMillis() - rec.lastSeen;
+              if (!online && age > expire * 60_000L) {
+                  opPlayers.remove(uuid);
+                  nameIndex.remove(rec.name.toLowerCase());
+                  return false;
+              }
+          }
+          return true;
+      }
+  
+      public boolean isOpByName(String name) {
+          if (name == null) return false;
+          UUID uuid = nameIndex.get(name.toLowerCase());
+          return uuid != null && isOp(uuid);
+      }
+  
+      public String getOpServer(UUID uuid) {
+          OpRecord rec = opPlayers.get(uuid);
+          return rec == null ? null : rec.serverName;
+      }
+  
+      public int getOpCount() {
+          return opPlayers.size();
+      }
+  
+      public Map<UUID, OpRecord> getOpPlayers() {
+          return opPlayers;
+      }
+  
+      @Subscribe
+      public void onDisconnect(DisconnectEvent event) {
+          UUID uuid = event.getPlayer().getUniqueId();
+          OpRecord rec = opPlayers.get(uuid);
+          if (rec != null && !rec.manual) {
+              // Keep record but mark lastSeen old; isOp() will expire it.
+              // This preserves OP across quick reconnects.
+              rec.lastSeen = System.currentTimeMillis();
+          }
+      }
+  
+      @Subscribe
+      public void onServerPostConnect(ServerPostConnectEvent event) {
+          if (logger != null && config != null && config.isDebug()) {
+              logger.info("[OP-TRACK] {} connected to {} (OP status: {})",
+                      event.getPlayer().getUsername(),
+                      event.getPlayer().getCurrentServer()
+                              .map(s -> s.getServerInfo().getName()).orElse("?"),
+                      isOp(event.getPlayer().getUniqueId()));
+          }
+      }
+  }
+            │                   ├── PermissionChecker.java
+  package ir.muvixo.logs.velocity;
+  
+  import com.velocitypowered.api.proxy.Player;
+  import org.slf4j.Logger;
+  
+  import java.util.List;
+  import java.util.Locale;
+  
+  /**
+   * Central permission checker.
+   *
+   * Order of checks:
+   *   1. force-see-players list (from config)
+   *   2. explicit see-permission
+   *   3. admin permission
+   *   4. extra see-permissions from config
+   *   5. tracked-as-OP (from backend)
+   *   6. wildcard permissions ("*", "velocity.*")
+   *
+   * @author muvixo
+   */
+  public class PermissionChecker {
+  
+      private final Config config;
+      private final OpPlayerManager opManager;
+      private final Logger logger;
+  
+      public PermissionChecker(Config config, OpPlayerManager opManager, Logger logger) {
+          this.config = config;
+          this.opManager = opManager;
+          this.logger = logger;
+      }
+  
+      public boolean canSee(Player player) {
+          if (player == null) return false;
+  
+          // 1. force-see list
+          if (config.isForceSee(player.getUsername())) return true;
+  
+          // 2. explicit see permission
+          if (safeHas(player, config.getSeePermission())) return true;
+  
+          // 3. admin permission
+          if (safeHas(player, config.getAdminPermission())) return true;
+  
+          // 4. extra permissions
+          List<String> extras = config.getExtraSeePermissions();
+          if (extras != null) {
+              for (String perm : extras) {
+                  if (perm == null || perm.isEmpty()) continue;
+                  if (safeHas(player, perm)) return true;
+              }
+          }
+  
+          // 5. tracked as OP on a backend
+          if (opManager.isOp(player.getUniqueId())) return true;
+  
+          // 6. wildcards
+          if (safeHas(player, "*")) return true;
+          if (safeHas(player, "velocity.*")) return true;
+  
+          return false;
+      }
+  
+      private boolean safeHas(Player player, String permission) {
+          if (permission == null || permission.isEmpty()) return false;
+          try {
+              return player.hasPermission(permission);
+          } catch (Exception e) {
+              if (config.isDebug() && logger != null) {
+                  logger.warn("Permission check failed for {} on {}: {}",
+                          player.getUsername(), permission, e.getMessage());
+              }
+              return false;
+          }
+      }
+  
+      public String explain(Player player) {
+          StringBuilder sb = new StringBuilder();
+          sb.append("Player: ").append(player.getUsername()).append(" (").append(player.getUniqueId()).append(")\n");
+          sb.append("  force-see: ").append(config.isForceSee(player.getUsername())).append("\n");
+          sb.append("  see-permission (").append(config.getSeePermission()).append("): ")
+            .append(safeHas(player, config.getSeePermission())).append("\n");
+          sb.append("  admin-permission (").append(config.getAdminPermission()).append("): ")
+            .append(safeHas(player, config.getAdminPermission())).append("\n");
+          sb.append("  tracked-as-op: ").append(opManager.isOp(player.getUniqueId())).append("\n");
+          sb.append("  op-server: ").append(opManager.getOpServer(player.getUniqueId())).append("\n");
+          sb.append("  wildcard-*: ").append(safeHas(player, "*")).append("\n");
+          sb.append("  wildcard-velocity.*: ").append(safeHas(player, "velocity.*")).append("\n");
+  
+          List<String> extras = config.getExtraSeePermissions();
+          if (extras != null && !extras.isEmpty()) {
+              sb.append("  extra-see-permissions:\n");
+              for (String p : extras) {
+                  sb.append("    ").append(p).append(" -> ").append(safeHas(player, p)).append("\n");
+              }
+          }
+          sb.append("  RESULT: ").append(canSee(player) ? "CAN SEE LOGS" : "CANNOT SEE LOGS");
+          return sb.toString();
+      }
+  
+      public boolean canReload(Player player) {
+          if (safeHas(player, config.getReloadPermission())) return true;
+          if (safeHas(player, config.getAdminPermission())) return true;
+          if (opManager.isOp(player.getUniqueId())) return true;
+          if (safeHas(player, "*")) return true;
+          if (config.isForceSee(player.getUsername())) return true;
+          return false;
+      }
+  }
+            │                   └── VelocityLogs.java
+  package ir.muvixo.logs.velocity;
+  
+  import com.google.inject.Inject;
+  import com.velocitypowered.api.command.CommandManager;
+  import com.velocitypowered.api.event.Subscribe;
+  import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
+  import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
+  import com.velocitypowered.api.plugin.Plugin;
+  import com.velocitypowered.api.plugin.annotation.DataDirectory;
+  import com.velocitypowered.api.proxy.ProxyServer;
+  import com.velocitypowered.api.proxy.messages.MinecraftChannelIdentifier;
+  import org.slf4j.Logger;
+  
+  import java.io.IOException;
+  import java.nio.file.Files;
+  import java.nio.file.Path;
+  
+  /**
+   * VelocityLogs v2.0 - receives command logs from Spigot backends and broadcasts
+   * them to staff.
+   *
+   * @author muvixo
+   */
+  @Plugin(
+          id = "velocity-logs",
+          name = "VelocityLogs",
+          version = "2.0.0",
+          description = "Broadcasts commands from backend Spigot servers to staff",
+          authors = {"muvixo"}
+  )
+  public class VelocityLogs {
+  
+      private final ProxyServer server;
+      private final Logger logger;
+      private final Path dataDirectory;
+  
+      private Config config;
+      private OpPlayerManager opManager;
+      private PermissionChecker permissionChecker;
+      private BackendMessageReceiver receiver;
+      private MinecraftChannelIdentifier channel;
+  
+      @Inject
+      public VelocityLogs(ProxyServer server, Logger logger, @DataDirectory Path dataDirectory) {
+          this.server = server;
+          this.logger = logger;
+          this.dataDirectory = dataDirectory;
+      }
+  
+      @Subscribe
+      public void onProxyInitialize(ProxyInitializeEvent event) {
+          try {
+              if (!Files.exists(dataDirectory)) {
+                  Files.createDirectories(dataDirectory);
+              }
+          } catch (IOException e) {
+              logger.error("Could not create data directory", e);
+          }
+  
+          this.config = new Config(dataDirectory, logger);
+          this.config.load();
+  
+          this.opManager = new OpPlayerManager(server, logger, config);
+          server.getEventManager().register(this, opManager);
+  
+          this.permissionChecker = new PermissionChecker(config, opManager, logger);
+  
+          this.channel = MinecraftChannelIdentifier.from(config.getChannel());
+          server.getChannelRegistrar().register(channel);
+  
+          this.receiver = new BackendMessageReceiver(server, logger, config, opManager, permissionChecker);
+          server.getEventManager().register(this, receiver);
+  
+          CommandManager cm = server.getCommandManager();
+          cm.register(
+                  cm.metaBuilder("logs")
+                          .aliases("cmdlogs", "commandlogs", "vlogs")
+                          .plugin(this)
+                          .build(),
+                  new LogsCommand(server, logger, config, opManager, permissionChecker)
+          );
+  
+          logger.info("===========================================");
+          logger.info("  VelocityLogs v2.0.0 by muvixo");
+          logger.info("  Channel: {}", config.getChannel());
+          logger.info("  See permission: {}", config.getSeePermission());
+          logger.info("  Debug: {}", config.isDebug());
+          logger.info("  Force-see players: {}", config.getForceSeePlayers());
+          logger.info("===========================================");
+      }
+  
+      @Subscribe
+      public void onProxyShutdown(ProxyShutdownEvent event) {
+          if (channel != null) {
+              try { server.getChannelRegistrar().unregister(channel); } catch (Exception ignored) {}
+          }
+          logger.info("VelocityLogs disabled.");
+      }
+  
+      public Config getConfig() { return config; }
+  }
+            └── resources
+                ├── config.yml
+  # ============================================================
+  #  VelocityLogs v2.0 - Velocity config
+  #  Author: muvixo
+  # ============================================================
+  
+  # Plugin messaging channel. MUST match the Spigot side.
+  channel: "velocitylogs:main"
+  
+  # ---------------- Permissions ----------------
+  see-permission: "velocitylogs.see"
+  reload-permission: "velocitylogs.reload"
+  admin-permission: "velocitylogs.admin"
+  
+  # Extra permissions that automatically grant log visibility.
+  extra-see-permissions:
+    - "velocitylogs.*"
+    - "*"
+  
+  # ---------------- Force-see ----------------
+  # Players in this list ALWAYS see logs, regardless of permission.
+  # Use lowercase names. Works even if OP detection fails.
+  force-see-players:
+    - "muvixo"
+  
+  # ---------------- Behaviour ----------------
+  # Should players who run a command see their own command in chat?
+  show-to-self: false
+  
+  # Log every command to the proxy console as well?
+  log-to-console: true
+  
+  # Print debug info to console.
+  debug: true
+  
+  # Auto-remove OP entries for offline players after N minutes.
+  # Set 0 to keep forever (until proxy restart).
+  op-cache-expire-minutes: 30
+  
+  # ---------------- Message Format ----------------
+  # Placeholders: {player} {server} {command} {time}
+  # Colors: &a &c &l ...  Hex: &#FF55FF
+  message-format: "&8[&cLogs&8] &e{player} &8>> &b{server} &8>> &f/{command}"
+  
+  reload-success-message: "&a[OK] Config reloaded successfully!"
+  no-permission-message: "&c[!] You don't have permission to do that!"
+                └── velocity-plugin.json
+  {
+    "id": "velocity-logs",
+    "name": "VelocityLogs",
+    "version": "${project.version}",
+    "description": "Broadcasts commands from backend Spigot servers to staff",
+    "authors": ["muvixo"],
+    "main": "ir.muvixo.logs.velocity.VelocityLogs"
+  }

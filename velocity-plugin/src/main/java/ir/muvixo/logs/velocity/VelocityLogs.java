@@ -17,7 +17,7 @@ import java.nio.file.Path;
 
 /**
  * VelocityLogs v2.0 - receives command logs from Spigot backends and broadcasts
- * them to staff.
+ * them to players who are actually OP on a backend.
  *
  * @author muvixo
  */
@@ -68,7 +68,7 @@ public class VelocityLogs {
         this.channel = MinecraftChannelIdentifier.from(config.getChannel());
         server.getChannelRegistrar().register(channel);
 
-        this.receiver = new BackendMessageReceiver(server, logger, config, opManager, permissionChecker);
+        this.receiver = new BackendMessageReceiver(server, logger, config, opManager);
         server.getEventManager().register(this, receiver);
 
         CommandManager cm = server.getCommandManager();
@@ -83,9 +83,8 @@ public class VelocityLogs {
         logger.info("===========================================");
         logger.info("  VelocityLogs v2.0.0 by muvixo");
         logger.info("  Channel: {}", config.getChannel());
-        logger.info("  See permission: {}", config.getSeePermission());
+        logger.info("  Visibility: only backend OPs");
         logger.info("  Debug: {}", config.isDebug());
-        logger.info("  Force-see players: {}", config.getForceSeePlayers());
         logger.info("===========================================");
     }
 

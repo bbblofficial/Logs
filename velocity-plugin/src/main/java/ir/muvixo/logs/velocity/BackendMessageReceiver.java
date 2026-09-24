@@ -13,7 +13,6 @@ import org.slf4j.Logger;
 
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -23,8 +22,7 @@ import java.util.UUID;
  *   OP_STATUS -> "OP_STATUS" | uuid | name | server | isOp
  *   CMD       -> "CMD"       | uuid | name | server | isOp | command
  *
- * The OP flag is included in every CMD message, so OP detection works
- * even if the join-time OP_STATUS message was lost.
+ * Only players tracked as OP on a backend receive the broadcasts.
  *
  * @author muvixo
  */
@@ -36,16 +34,14 @@ public class BackendMessageReceiver {
     private final Logger logger;
     private final Config config;
     private final OpPlayerManager opManager;
-    private final PermissionChecker permChecker;
     private final MinecraftChannelIdentifier channel;
 
     public BackendMessageReceiver(ProxyServer server, Logger logger, Config config,
-                                  OpPlayerManager opManager, PermissionChecker permChecker) {
+                                  OpPlayerManager opManager) {
         this.server = server;
         this.logger = logger;
         this.config = config;
         this.opManager = opManager;
-        this.permChecker = permChecker;
         this.channel = MinecraftChannelIdentifier.from(config.getChannel());
     }
 
@@ -104,19 +100,11 @@ public class BackendMessageReceiver {
         int total = 0, sent = 0;
         for (Player online : server.getAllPlayers()) {
             total++;
-            boolean canSee = permChecker.canSee(online);
-            boolean isSelf = config.isShowToSelf()
-                    && online.getUsername().equalsIgnoreCase(playerName);
+            // Only backend-reported OPs can see the logs.
+            if (!opManager.isOp(online.getUniqueId())) continue;
 
-            if (canSee || isSelf) {
-                online.sendMessage(message);
-                sent++;
-            }
-            if (config.isDebug() && online.getUsername().equalsIgnoreCase(playerName)) {
-                logger.info("[DEBUG] Executor {} -> canSee={}, isSelf={}, opTracked={}",
-                        playerName, canSee, isSelf,
-                        opManager.isOp(online.getUniqueId()));
-            }
+            online.sendMessage(message);
+            sent++;
         }
 
         if (config.isLogToConsole()) {

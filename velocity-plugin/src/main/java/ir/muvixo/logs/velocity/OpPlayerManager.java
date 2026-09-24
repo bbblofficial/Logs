@@ -16,7 +16,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * v2.0 changes:
  *   - UUID-based tracking
  *   - lastSeen timestamp so we can expire stale entries
- *   - manualOverride flag for /logs op
+ *   - Manual override (markOpManual) has been REMOVED in this revision,
+ *     because /logs op and /logs unop are no longer available.
+ *     OP status is now derived ONLY from the backend Spigot servers.
  *
  * @author muvixo
  */
@@ -27,14 +29,12 @@ public class OpPlayerManager {
         public volatile String name;
         public volatile String serverName;
         public volatile long lastSeen;
-        public volatile boolean manual;
 
-        public OpRecord(UUID uuid, String name, String serverName, boolean manual) {
+        public OpRecord(UUID uuid, String name, String serverName) {
             this.uuid = uuid;
             this.name = name;
             this.serverName = serverName;
             this.lastSeen = System.currentTimeMillis();
-            this.manual = manual;
         }
 
         public void refresh(String serverName) {
@@ -62,21 +62,12 @@ public class OpPlayerManager {
             existing.name = playerName;
             return;
         }
-        OpRecord rec = new OpRecord(uuid, playerName, serverName, false);
+        OpRecord rec = new OpRecord(uuid, playerName, serverName);
         opPlayers.put(uuid, rec);
         nameIndex.put(playerName.toLowerCase(), uuid);
         if (logger != null) {
             logger.info("[OP-TRACK] Marked {} ({}) as OP (backend: {})",
                     playerName, uuid, serverName);
-        }
-    }
-
-    public void markOpManual(UUID uuid, String playerName) {
-        OpRecord rec = new OpRecord(uuid, playerName, "manual", true);
-        opPlayers.put(uuid, rec);
-        nameIndex.put(playerName.toLowerCase(), uuid);
-        if (logger != null) {
-            logger.info("[OP-TRACK] Manually marked {} ({}) as OP", playerName, uuid);
         }
     }
 
@@ -92,9 +83,10 @@ public class OpPlayerManager {
         if (uuid == null) return false;
         OpRecord rec = opPlayers.get(uuid);
         if (rec == null) return false;
-        // expire stale non-manual entries when player is offline
+
+        // expire stale entries when player is offline
         int expire = config != null ? config.getOpCacheExpireMinutes() : 30;
-        if (expire > 0 && !rec.manual) {
+        if (expire > 0) {
             boolean online = server.getPlayer(uuid).isPresent();
             long age = System.currentTimeMillis() - rec.lastSeen;
             if (!online && age > expire * 60_000L) {
@@ -129,9 +121,9 @@ public class OpPlayerManager {
     public void onDisconnect(DisconnectEvent event) {
         UUID uuid = event.getPlayer().getUniqueId();
         OpRecord rec = opPlayers.get(uuid);
-        if (rec != null && !rec.manual) {
-            // Keep record but mark lastSeen old; isOp() will expire it.
-            // This preserves OP across quick reconnects.
+        if (rec != null) {
+            // Keep record but refresh lastSeen; isOp() will expire it if
+            // the player stays offline longer than op-cache-expire-minutes.
             rec.lastSeen = System.currentTimeMillis();
         }
     }

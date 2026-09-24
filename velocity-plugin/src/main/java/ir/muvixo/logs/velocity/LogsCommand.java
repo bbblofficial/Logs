@@ -15,7 +15,10 @@ import java.util.Optional;
 import java.util.UUID;
 
 /**
- * /logs command with info, help, reload, debug, op, unop, list.
+ * /logs command with info, help, reload, debug, status, list.
+ * The /logs op and /logs unop subcommands have been removed.
+ * Only players who are actually OP on a backend (as reported by the
+ * Spigot plugin) can see the logs.
  *
  * @author muvixo
  */
@@ -82,42 +85,6 @@ public class LogsCommand implements SimpleCommand {
                 return;
             }
 
-            case "op": {
-                if (!canReload(source)) { noPerm(source); return; }
-                if (args.length < 2) {
-                    source.sendMessage(Component.text("Usage: /logs op <player>", NamedTextColor.RED));
-                    return;
-                }
-                Optional<Player> opt = server.getPlayer(args[1]);
-                if (opt.isEmpty()) {
-                    source.sendMessage(Component.text("Player not found: " + args[1], NamedTextColor.RED));
-                    return;
-                }
-                Player p = opt.get();
-                opManager.markOpManual(p.getUniqueId(), p.getUsername());
-                source.sendMessage(Component.text("[OK] ", NamedTextColor.GREEN)
-                        .append(Component.text(p.getUsername() + " marked as OP.", NamedTextColor.WHITE)));
-                return;
-            }
-
-            case "unop": {
-                if (!canReload(source)) { noPerm(source); return; }
-                if (args.length < 2) {
-                    source.sendMessage(Component.text("Usage: /logs unop <player>", NamedTextColor.RED));
-                    return;
-                }
-                Optional<Player> opt = server.getPlayer(args[1]);
-                if (opt.isEmpty()) {
-                    source.sendMessage(Component.text("Player not found: " + args[1], NamedTextColor.RED));
-                    return;
-                }
-                Player p = opt.get();
-                opManager.unmarkOp(p.getUniqueId(), p.getUsername());
-                source.sendMessage(Component.text("[OK] ", NamedTextColor.GREEN)
-                        .append(Component.text(p.getUsername() + " unmarked.", NamedTextColor.WHITE)));
-                return;
-            }
-
             default:
                 sendInfo(source);
         }
@@ -145,8 +112,6 @@ public class LogsCommand implements SimpleCommand {
         row(source, "/logs reload", "reload config");
         row(source, "/logs debug <player>", "diagnose player");
         row(source, "/logs status <player>", "same as debug");
-        row(source, "/logs op <player>", "mark player as OP");
-        row(source, "/logs unop <player>", "unmark player");
         row(source, "/logs list", "list tracked OPs");
     }
 
@@ -165,8 +130,8 @@ public class LogsCommand implements SimpleCommand {
         long now = System.currentTimeMillis();
         for (OpPlayerManager.OpRecord r : ops.values()) {
             long ageSec = (now - r.lastSeen) / 1000;
-            String line = String.format("  %s | server=%s | manual=%s | lastSeen=%ds ago",
-                    r.name, r.serverName, r.manual, ageSec);
+            String line = String.format("  %s | server=%s | lastSeen=%ds ago",
+                    r.name, r.serverName, ageSec);
             source.sendMessage(Component.text(line, NamedTextColor.GRAY));
         }
     }
@@ -191,11 +156,10 @@ public class LogsCommand implements SimpleCommand {
     public List<String> suggest(Invocation invocation) {
         String[] args = invocation.arguments();
         if (args.length <= 1) {
-            return List.of("reload", "help", "debug", "status", "op", "unop", "list");
+            return List.of("reload", "help", "debug", "status", "list");
         }
         String sub = args[0].toLowerCase();
-        if (args.length == 2 && (sub.equals("debug") || sub.equals("status")
-                || sub.equals("op") || sub.equals("unop"))) {
+        if (args.length == 2 && (sub.equals("debug") || sub.equals("status"))) {
             List<String> names = new ArrayList<>();
             for (Player p : server.getAllPlayers()) names.add(p.getUsername());
             return names;

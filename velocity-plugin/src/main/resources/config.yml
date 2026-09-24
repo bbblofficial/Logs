@@ -6,22 +6,6 @@
 # Plugin messaging channel. MUST match the Spigot side.
 channel: "velocitylogs:main"
 
-# ---------------- Permissions ----------------
-see-permission: "velocitylogs.see"
-reload-permission: "velocitylogs.reload"
-admin-permission: "velocitylogs.admin"
-
-# Extra permissions that automatically grant log visibility.
-extra-see-permissions:
-  - "velocitylogs.*"
-  - "*"
-
-# ---------------- Force-see ----------------
-# Players in this list ALWAYS see logs, regardless of permission.
-# Use lowercase names. Works even if OP detection fails.
-force-see-players:
-  - "muvixo"
-
 # ---------------- Behaviour ----------------
 # Should players who run a command see their own command in chat?
 show-to-self: false
