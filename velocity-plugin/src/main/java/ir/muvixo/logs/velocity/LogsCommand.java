@@ -96,8 +96,6 @@ public class LogsCommand implements SimpleCommand {
                 .append(Component.text("by muvixo", NamedTextColor.AQUA)));
         source.sendMessage(Component.text("Channel: ", NamedTextColor.GRAY)
                 .append(Component.text(config.getChannel(), NamedTextColor.WHITE)));
-        source.sendMessage(Component.text("See permission: ", NamedTextColor.GRAY)
-                .append(Component.text(config.getSeePermission(), NamedTextColor.WHITE)));
         source.sendMessage(Component.text("Tracked OPs: ", NamedTextColor.GRAY)
                 .append(Component.text(String.valueOf(opManager.getOpCount()), NamedTextColor.WHITE)));
         source.sendMessage(Component.text("Type ", NamedTextColor.GRAY)
@@ -142,8 +140,6 @@ public class LogsCommand implements SimpleCommand {
 
     private boolean canReload(CommandSource source) {
         if (!(source instanceof Player player)) return true; // console always allowed
-        if (player.hasPermission(config.getReloadPermission())) return true;
-        if (player.hasPermission(config.getAdminPermission())) return true;
         return permChecker.canReload(player);
     }
 

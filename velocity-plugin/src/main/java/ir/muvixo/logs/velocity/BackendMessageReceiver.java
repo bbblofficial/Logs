@@ -15,17 +15,6 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
-/**
- * Receives plugin messages from Spigot backends.
- *
- * v2.0 message protocol:
- *   OP_STATUS -> "OP_STATUS" | uuid | name | server | isOp
- *   CMD       -> "CMD"       | uuid | name | server | isOp | command
- *
- * Only players tracked as OP on a backend receive the broadcasts.
- *
- * @author muvixo
- */
 public class BackendMessageReceiver {
 
     private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm:ss");
@@ -76,7 +65,6 @@ public class BackendMessageReceiver {
                 boolean isOp = Boolean.parseBoolean(in.readUTF());
                 String command = in.readUTF();
 
-                // Refresh OP status from every command (bulletproof)
                 if (isOp) opManager.markOp(uuid, name, serverName);
 
                 broadcast(name, serverName, command);
@@ -100,9 +88,7 @@ public class BackendMessageReceiver {
         int total = 0, sent = 0;
         for (Player online : server.getAllPlayers()) {
             total++;
-            // Only backend-reported OPs can see the logs.
             if (!opManager.isOp(online.getUniqueId())) continue;
-
             online.sendMessage(message);
             sent++;
         }

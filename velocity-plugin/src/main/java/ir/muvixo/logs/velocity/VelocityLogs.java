@@ -15,12 +15,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-/**
- * VelocityLogs v2.0 - receives command logs from Spigot backends and broadcasts
- * them to players who are actually OP on a backend.
- *
- * @author muvixo
- */
 @Plugin(
         id = "velocity-logs",
         name = "VelocityLogs",

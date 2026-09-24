@@ -7,23 +7,12 @@
 channel: "velocitylogs:main"
 
 # ---------------- Behaviour ----------------
-# Should players who run a command see their own command in chat?
 show-to-self: false
-
-# Log every command to the proxy console as well?
 log-to-console: true
-
-# Print debug info to console.
 debug: true
-
-# Auto-remove OP entries for offline players after N minutes.
-# Set 0 to keep forever (until proxy restart).
 op-cache-expire-minutes: 30
 
 # ---------------- Message Format ----------------
-# Placeholders: {player} {server} {command} {time}
-# Colors: &a &c &l ...  Hex: &#FF55FF
 message-format: "&8[&cLogs&8] &e{player} &8>> &b{server} &8>> &f/{command}"
-
 reload-success-message: "&a[OK] Config reloaded successfully!"
 no-permission-message: "&c[!] You don't have permission to do that!"

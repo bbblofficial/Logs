@@ -10,18 +10,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Tracks players who are OP on their current backend.
- *
- * v2.0 changes:
- *   - UUID-based tracking
- *   - lastSeen timestamp so we can expire stale entries
- *   - Manual override (markOpManual) has been REMOVED in this revision,
- *     because /logs op and /logs unop are no longer available.
- *     OP status is now derived ONLY from the backend Spigot servers.
- *
- * @author muvixo
- */
 public class OpPlayerManager {
 
     public static class OpRecord {
@@ -84,7 +72,6 @@ public class OpPlayerManager {
         OpRecord rec = opPlayers.get(uuid);
         if (rec == null) return false;
 
-        // expire stale entries when player is offline
         int expire = config != null ? config.getOpCacheExpireMinutes() : 30;
         if (expire > 0) {
             boolean online = server.getPlayer(uuid).isPresent();
@@ -122,8 +109,6 @@ public class OpPlayerManager {
         UUID uuid = event.getPlayer().getUniqueId();
         OpRecord rec = opPlayers.get(uuid);
         if (rec != null) {
-            // Keep record but refresh lastSeen; isOp() will expire it if
-            // the player stays offline longer than op-cache-expire-minutes.
             rec.lastSeen = System.currentTimeMillis();
         }
     }
