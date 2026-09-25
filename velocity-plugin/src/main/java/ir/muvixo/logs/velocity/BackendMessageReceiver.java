@@ -127,7 +127,7 @@ public class BackendMessageReceiver {
             // (backend-OP, or have the configured see/admin permission).
             if (!permChecker.canSee(online)) continue;
 
-            // Optionally skip the player who ran the command.
+            // Hide own command only if show-to-self is disabled.
             if (!config.isShowToSelf()
                     && online.getUsername().equalsIgnoreCase(playerName)) {
                 continue;

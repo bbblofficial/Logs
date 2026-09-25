@@ -7,8 +7,8 @@
 channel: "velocitylogs:main"
 
 # ---------------- Behaviour ----------------
-# Show the command log to the player who typed it? (usually false)
-show-to-self: false
+# Show the command log to the player who typed it? (set true to see your own)
+show-to-self: true
 
 # Print every logged command to the proxy console.
 log-to-console: true
