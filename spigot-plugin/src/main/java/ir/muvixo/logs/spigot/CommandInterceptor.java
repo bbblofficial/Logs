@@ -13,6 +13,10 @@ import org.bukkit.event.player.PlayerQuitEvent;
 /**
  * Intercepts commands and forwards them with OP status to Velocity.
  *
+ * v2.1 - Always reports current OP status with every command so that
+ * stale OP entries on the proxy are cleared immediately (fixes regular
+ * players seeing the logs after being de-opped while online).
+ *
  * @author muvixo
  */
 public class CommandInterceptor implements Listener {
@@ -38,10 +42,9 @@ public class CommandInterceptor implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onQuit(PlayerQuitEvent event) {
+        // Always tell the proxy this player is gone, so nothing stale remains.
         if (!config.isReportOpStatus()) return;
-        if (event.getPlayer().isOp()) {
-            plugin.sendOpStatus(event.getPlayer(), false);
-        }
+        plugin.sendOpStatus(event.getPlayer(), false);
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -51,6 +54,13 @@ public class CommandInterceptor implements Listener {
         if (!plugin.isForwardingEnabled()) return;
 
         Player player = event.getPlayer();
+
+        // --- FIX: Always sync the *current* OP status on every command. ---
+        // This ensures that if a player is de-opped while online, the proxy
+        // gets an "OP_STATUS false" immediately and stops showing them logs.
+        if (config.isReportOpStatus()) {
+            plugin.sendOpStatus(player, player.isOp());
+        }
 
         if (!config.isLogOps() && player.isOp()) return;
         if (config.isIgnoredPlayer(player.getName())) return;
@@ -78,7 +88,7 @@ public class CommandInterceptor implements Listener {
 
             if (plugin.isDebugEnabled()) {
                 plugin.getLogger().info("[DEBUG] Forwarded: " + player.getName()
-                        + " -> /" + command);
+                        + " (op=" + player.isOp() + ") -> /" + command);
             }
         } catch (Exception e) {
             plugin.getLogger().warning("Failed to forward command: " + e.getMessage());

@@ -1,5 +1,5 @@
 # ============================================================
-#  VelocityLogs v2.0 - Velocity config
+#  VelocityLogs v2.1 - Velocity config
 #  Author: muvixo
 # ============================================================
 
@@ -7,12 +7,38 @@
 channel: "velocitylogs:main"
 
 # ---------------- Behaviour ----------------
+# Show the command log to the player who typed it? (usually false)
 show-to-self: false
+
+# Print every logged command to the proxy console.
 log-to-console: true
-debug: true
-op-cache-expire-minutes: 30
+
+# Verbose debug output in the proxy log. Set to false in production.
+debug: false
+
+# How long (in minutes) to keep an offline player marked as OP.
+# Safety net in case an OP_STATUS=false message was lost.
+# Set to 0 to disable expiration entirely (not recommended).
+op-cache-expire-minutes: 5
 
 # ---------------- Message Format ----------------
+# Placeholders: {player} {server} {command} {time}
+# Supports legacy (&a, &c) and hex (&#RRGGBB) colors.
 message-format: "&8[&cLogs&8] &e{player} &8>> &b{server} &8>> &f/{command}"
 reload-success-message: "&a[OK] Config reloaded successfully!"
 no-permission-message: "&c[!] You don't have permission to do that!"
+
+# ============================================================
+#  Permission Nodes
+#  A player can see the logs if ANY of the following is true:
+#    1. They are OP on a backend server (auto-detected).
+#    2. They have the "see" permission below.
+#    3. They have the "admin" permission below.
+#
+#  Grant with LuckPerms (or any perm plugin):
+#    /lp group staff permission set velocitylogs.see   true
+#    /lp group admin permission set velocitylogs.admin true
+# ============================================================
+permissions:
+  see:   "velocitylogs.see"
+  admin: "velocitylogs.admin"

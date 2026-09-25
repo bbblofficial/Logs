@@ -10,6 +10,17 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Tracks which players are OP on a backend server.
+ *
+ * Entries are created when a backend reports OP_STATUS=true or when a
+ * command arrives with op=true. They are removed:
+ *   - Immediately when OP_STATUS=false arrives (e.g. player quit or de-opped).
+ *   - Immediately when a CMD arrives with op=false (fixes stale entries).
+ *   - After {@code op-cache-expire-minutes} once the player is offline.
+ *
+ * @author muvixo
+ */
 public class OpPlayerManager {
 
     public static class OpRecord {
@@ -43,30 +54,60 @@ public class OpPlayerManager {
         this.config = config;
     }
 
+    /**
+     * Mark a player as OP. If already tracked, refresh their server + name.
+     */
     public void markOp(UUID uuid, String playerName, String serverName) {
+        if (uuid == null) return;
+
         OpRecord existing = opPlayers.get(uuid);
         if (existing != null) {
+            // Update name index if the name changed
+            if (playerName != null && !playerName.equalsIgnoreCase(existing.name)) {
+                nameIndex.remove(existing.name.toLowerCase());
+                nameIndex.put(playerName.toLowerCase(), uuid);
+                existing.name = playerName;
+            }
             existing.refresh(serverName);
-            existing.name = playerName;
             return;
         }
+
         OpRecord rec = new OpRecord(uuid, playerName, serverName);
         opPlayers.put(uuid, rec);
-        nameIndex.put(playerName.toLowerCase(), uuid);
+        if (playerName != null) {
+            nameIndex.put(playerName.toLowerCase(), uuid);
+        }
         if (logger != null) {
             logger.info("[OP-TRACK] Marked {} ({}) as OP (backend: {})",
                     playerName, uuid, serverName);
         }
     }
 
+    /**
+     * Remove a player from the OP list. Uses the stored record's name for
+     * cleanup so a null/incorrect playerName argument can't leave a stale
+     * entry in the name index.
+     */
     public void unmarkOp(UUID uuid, String playerName) {
+        if (uuid == null) return;
+
         OpRecord removed = opPlayers.remove(uuid);
-        if (playerName != null) nameIndex.remove(playerName.toLowerCase());
-        if (removed != null && logger != null) {
-            logger.info("[OP-TRACK] Unmarked {} ({})", playerName, uuid);
+        if (removed != null) {
+            nameIndex.remove(removed.name.toLowerCase());
+            if (logger != null) {
+                logger.info("[OP-TRACK] Unmarked {} ({})", removed.name, uuid);
+            }
+        }
+        // Clean up any leftover name-index entries for the supplied name too.
+        if (playerName != null) {
+            nameIndex.remove(playerName.toLowerCase());
         }
     }
 
+    /**
+     * Is this UUID currently considered an OP?
+     * If the player is offline and the cache has expired, they are dropped.
+     */
     public boolean isOp(UUID uuid) {
         if (uuid == null) return false;
         OpRecord rec = opPlayers.get(uuid);
@@ -103,6 +144,10 @@ public class OpPlayerManager {
     public Map<UUID, OpRecord> getOpPlayers() {
         return opPlayers;
     }
+
+    // ============================================================
+    //  Events
+    // ============================================================
 
     @Subscribe
     public void onDisconnect(DisconnectEvent event) {

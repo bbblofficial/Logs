@@ -61,8 +61,7 @@ public class VelocityLogs {
 
         this.channel = MinecraftChannelIdentifier.from(config.getChannel());
         server.getChannelRegistrar().register(channel);
-
-        this.receiver = new BackendMessageReceiver(server, logger, config, opManager);
+        this.receiver = new BackendMessageReceiver(server, logger, config, opManager, permissionChecker);
         server.getEventManager().register(this, receiver);
 
         CommandManager cm = server.getCommandManager();

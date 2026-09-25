@@ -1,5 +1,5 @@
 # ============================================================
-#  VelocityLogs-Spigot v2.0 - backend config
+#  VelocityLogs-Spigot v2.1 - backend config
 #  Author: muvixo
 # ============================================================
 
@@ -13,11 +13,13 @@ server-name: ""
 # Send commands to the proxy even for OP players?
 log-ops: true
 
-# Send OP status to the proxy on player join AND with every command?
+# Send OP status to the proxy on player join, quit, AND with every command?
+# (v2.1 fix: sending it with every command clears stale OP entries.)
 report-op-status: true
 
-# Also report OP status periodically (safety net).
-op-status-interval-minutes: 5
+# Also report OP status periodically as a safety net.
+# Lower = faster sync, slightly more traffic. 1 is a good value.
+op-status-interval-minutes: 1
 
 # Hide these commands from being forwarded.
 blacklist:
