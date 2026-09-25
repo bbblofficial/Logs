@@ -3,4 +3,35 @@ main: ir.muvixo.logs.spigot.SpigotLogs
 version: ${project.version}
 author: muvixo
 description: Forwards every command executed by players to the Velocity proxy
-api-version: 1.8
+
+commands:
+  vlogs:
+    description: VelocityLogs Spigot helper command
+    usage: /vlogs help
+    aliases: [velogs, velocitylogs]
+
+permissions:
+  # ---- Public ----
+  velocitylogs.use:
+    description: Access to /vlogs help and /vlogs info
+    default: true
+  velocitylogs.creator:
+    description: See plugin credits
+    default: true
+
+  # ---- Admin ----
+  velocitylogs.admin:
+    description: Full admin access
+    default: op
+  velocitylogs.reload:
+    description: Reload config
+    default: op
+  velocitylogs.status:
+    description: Show plugin status
+    default: op
+  velocitylogs.toggle:
+    description: Toggle command forwarding on/off
+    default: op
+  velocitylogs.debug:
+    description: Toggle debug mode
+    default: op

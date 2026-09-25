@@ -2,7 +2,7 @@ C:\Users\nasle javan\Downloads\r48jd4j98r498ej-main\r48jd4j98r498ej-main\logs\ve
 
 ├── .git
 │   ├── COMMIT_EDITMSG
-  Initial commit
+  SQiiiL
 │   ├── HEAD
   ref: refs/heads/main
 │   ├── config
@@ -926,6 +926,11 @@ C:\Users\nasle javan\Downloads\r48jd4j98r498ej-main\r48jd4j98r498ej-main\logs\ve
   606d2840a36ca2a48d2e961a801755494a3caa9e 8459c7ff156e62d7c7683410b57418e2c3448465 muvixo <godarshia20@gmail.com> 1790129546 +0330	commit: Initial commit
   8459c7ff156e62d7c7683410b57418e2c3448465 33de73376663f28aa45884e9eeb2e146b6dab0d9 muvixo <godarshia20@gmail.com> 1790130142 +0330	commit: Initial commit
   33de73376663f28aa45884e9eeb2e146b6dab0d9 5499de63e5bb25b2fe45927a22ed14b60664c6e7 muvixo <godarshia20@gmail.com> 1790137066 +0330	commit: Initial commit
+  5499de63e5bb25b2fe45927a22ed14b60664c6e7 e602d0935b8474a82874e33b2fe20f62e5d1239f muvixo <godarshia20@gmail.com> 1790290021 +0330	commit: SQiiiL
+  e602d0935b8474a82874e33b2fe20f62e5d1239f 1df1cb18a3fafd9800c2a5b9655f3b3000052bf9 muvixo <godarshia20@gmail.com> 1790290287 +0330	commit: SQiiiL
+  1df1cb18a3fafd9800c2a5b9655f3b3000052bf9 5e0ba62a0ba14dc7a7e279ef874e8a14b4d54f64 muvixo <godarshia20@gmail.com> 1790290433 +0330	commit: SQiiiL
+  5e0ba62a0ba14dc7a7e279ef874e8a14b4d54f64 5cc587527a3d283c3ecf4328c3f3c4ff1c0209cc muvixo <godarshia20@gmail.com> 1790290558 +0330	commit: SQiiiL
+  5cc587527a3d283c3ecf4328c3f3c4ff1c0209cc 454c5e58432d286af911a0515da54ae808b74b45 muvixo <godarshia20@gmail.com> 1790290911 +0330	commit: SQiiiL
 │   │   └── refs
 │   │       ├── heads
 │   │       │   └── main
@@ -938,6 +943,11 @@ C:\Users\nasle javan\Downloads\r48jd4j98r498ej-main\r48jd4j98r498ej-main\logs\ve
   606d2840a36ca2a48d2e961a801755494a3caa9e 8459c7ff156e62d7c7683410b57418e2c3448465 muvixo <godarshia20@gmail.com> 1790129546 +0330	commit: Initial commit
   8459c7ff156e62d7c7683410b57418e2c3448465 33de73376663f28aa45884e9eeb2e146b6dab0d9 muvixo <godarshia20@gmail.com> 1790130142 +0330	commit: Initial commit
   33de73376663f28aa45884e9eeb2e146b6dab0d9 5499de63e5bb25b2fe45927a22ed14b60664c6e7 muvixo <godarshia20@gmail.com> 1790137066 +0330	commit: Initial commit
+  5499de63e5bb25b2fe45927a22ed14b60664c6e7 e602d0935b8474a82874e33b2fe20f62e5d1239f muvixo <godarshia20@gmail.com> 1790290021 +0330	commit: SQiiiL
+  e602d0935b8474a82874e33b2fe20f62e5d1239f 1df1cb18a3fafd9800c2a5b9655f3b3000052bf9 muvixo <godarshia20@gmail.com> 1790290287 +0330	commit: SQiiiL
+  1df1cb18a3fafd9800c2a5b9655f3b3000052bf9 5e0ba62a0ba14dc7a7e279ef874e8a14b4d54f64 muvixo <godarshia20@gmail.com> 1790290433 +0330	commit: SQiiiL
+  5e0ba62a0ba14dc7a7e279ef874e8a14b4d54f64 5cc587527a3d283c3ecf4328c3f3c4ff1c0209cc muvixo <godarshia20@gmail.com> 1790290558 +0330	commit: SQiiiL
+  5cc587527a3d283c3ecf4328c3f3c4ff1c0209cc 454c5e58432d286af911a0515da54ae808b74b45 muvixo <godarshia20@gmail.com> 1790290911 +0330	commit: SQiiiL
 │   │       └── remotes
 │   │           └── origin
 │   │               └── main
@@ -949,13 +959,29 @@ C:\Users\nasle javan\Downloads\r48jd4j98r498ej-main\r48jd4j98r498ej-main\logs\ve
   606d2840a36ca2a48d2e961a801755494a3caa9e 8459c7ff156e62d7c7683410b57418e2c3448465 muvixo <godarshia20@gmail.com> 1790129559 +0330	update by push
   8459c7ff156e62d7c7683410b57418e2c3448465 33de73376663f28aa45884e9eeb2e146b6dab0d9 muvixo <godarshia20@gmail.com> 1790130167 +0330	update by push
   33de73376663f28aa45884e9eeb2e146b6dab0d9 5499de63e5bb25b2fe45927a22ed14b60664c6e7 muvixo <godarshia20@gmail.com> 1790137085 +0330	update by push
+  5499de63e5bb25b2fe45927a22ed14b60664c6e7 e602d0935b8474a82874e33b2fe20f62e5d1239f muvixo <godarshia20@gmail.com> 1790290038 +0330	update by push
+  e602d0935b8474a82874e33b2fe20f62e5d1239f 1df1cb18a3fafd9800c2a5b9655f3b3000052bf9 muvixo <godarshia20@gmail.com> 1790290297 +0330	update by push
+  1df1cb18a3fafd9800c2a5b9655f3b3000052bf9 5e0ba62a0ba14dc7a7e279ef874e8a14b4d54f64 muvixo <godarshia20@gmail.com> 1790290445 +0330	update by push
+  5e0ba62a0ba14dc7a7e279ef874e8a14b4d54f64 5cc587527a3d283c3ecf4328c3f3c4ff1c0209cc muvixo <godarshia20@gmail.com> 1790290569 +0330	update by push
+  5cc587527a3d283c3ecf4328c3f3c4ff1c0209cc 454c5e58432d286af911a0515da54ae808b74b45 muvixo <godarshia20@gmail.com> 1790290953 +0330	update by push
 │   ├── objects
 │   │   ├── 00
+│   │   │   ├── 2dd26689e4b2539d5b844402510ac46459884e
+  [Error: 'utf-8' codec can't decode byte 0xbd in position 16: invalid start byte]
 │   │   │   └── 986249884086936f802b842352df36a69906f9
   [Error: 'utf-8' codec can't decode byte 0xb1 in position 4: invalid start byte]
 │   │   ├── 01
 │   │   │   └── 1ddcfd77ee0e58d4334fae98a12f37286dd95c
   [Error: 'utf-8' codec can't decode byte 0xd1 in position 4: invalid continuation byte]
+│   │   ├── 03
+│   │   │   └── 148a6e76ff42f03884c5d1df0f9a44a7f21621
+  [Error: 'utf-8' codec can't decode byte 0xbd in position 2: invalid start byte]
+│   │   ├── 06
+│   │   │   └── f3ab7a258d4bb492a05348caf82e68c6a5fd60
+  [Error: 'utf-8' codec can't decode byte 0xc8 in position 18: invalid continuation byte]
+│   │   ├── 07
+│   │   │   └── 5ba7e21b44caaab253ad92ebb264a4308f601b
+  [Error: 'utf-8' codec can't decode bytes in position 2-3: invalid continuation byte]
 │   │   ├── 08
 │   │   │   └── 8587e5385721d8d996d617a3d955c44a2262bd
   [Error: 'utf-8' codec can't decode byte 0xce in position 19: invalid continuation byte]
@@ -965,6 +991,9 @@ C:\Users\nasle javan\Downloads\r48jd4j98r498ej-main\r48jd4j98r498ej-main\logs\ve
 │   │   ├── 0d
 │   │   │   └── 75464b698fa237dba01748dc66fad09d33a007
   [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   ├── 0e
+│   │   │   └── ae44f2516de9f8ed38239d71a14373f2c45cfa
+  [Error: 'utf-8' codec can't decode byte 0xad in position 2: invalid start byte]
 │   │   ├── 0f
 │   │   │   └── fcc7542882250806abd6aa1581f0c2fc5cecaa
   [Error: 'utf-8' codec can't decode byte 0xad in position 2: invalid start byte]
@@ -992,17 +1021,35 @@ C:\Users\nasle javan\Downloads\r48jd4j98r498ej-main\r48jd4j98r498ej-main\logs\ve
 │   │   ├── 1d
 │   │   │   ├── c547f7126934fb1694cede100f527a3c9135e3
   [Error: 'utf-8' codec can't decode byte 0x95 in position 2: invalid start byte]
-│   │   │   └── eb1caf46d847f73da4c69704b6e57e722b9be6
+│   │   │   ├── eb1caf46d847f73da4c69704b6e57e722b9be6
   [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   │   └── f1cb18a3fafd9800c2a5b9655f3b3000052bf9
+  [Error: 'utf-8' codec can't decode byte 0x95 in position 2: invalid start byte]
 │   │   ├── 20
 │   │   │   └── b2745f6f393af9c73bf116fa5826f70fbd0f7c
+  [Error: 'utf-8' codec can't decode byte 0xc8 in position 18: invalid continuation byte]
+│   │   ├── 22
+│   │   │   ├── 4f1a00ce8c8e7e240d06f14727f72807e97dfe
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   │   └── 9608584f21b734393bf42f71d5532c7a76a59e
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   ├── 24
+│   │   │   └── 2d2a5df4fb07d683a95c7ad399d66fb610b524
+  [Error: 'utf-8' codec can't decode byte 0xbd in position 16: invalid start byte]
+│   │   ├── 25
+│   │   │   └── 6cfa0339d5058bacbda8c0a1693a99ebc34043
   [Error: 'utf-8' codec can't decode byte 0xc8 in position 18: invalid continuation byte]
 │   │   ├── 26
 │   │   │   └── efe562eaf46d68986924ba8ddc8a46b88db419
   [Error: 'utf-8' codec can't decode byte 0xb4 in position 8: invalid start byte]
 │   │   ├── 27
+│   │   │   ├── 68efb67801d47b638572f33b62517fbf3b37b9
+  [Error: 'utf-8' codec can't decode byte 0x8d in position 2: invalid start byte]
 │   │   │   └── 703f2ef83175faffbea451605cb9b3e887f165
   [Error: 'utf-8' codec can't decode byte 0xa5 in position 2: invalid start byte]
+│   │   ├── 28
+│   │   │   └── e466f17abf5f183852c93bab5fbb6d90fbc6fc
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
 │   │   ├── 29
 │   │   │   └── a3ec978b828a3b5af3191214d6ebf18f4f138e
   [Error: 'utf-8' codec can't decode byte 0x85 in position 2: invalid start byte]
@@ -1013,6 +1060,9 @@ C:\Users\nasle javan\Downloads\r48jd4j98r498ej-main\r48jd4j98r498ej-main\logs\ve
   [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
 │   │   ├── 2d
 │   │   │   └── 63f77d634f88332dd00f78e3ffa6597cb7db1b
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   ├── 2e
+│   │   │   └── a0d7c20840d4e2c87cf37bc31ddea9862867ae
   [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
 │   │   ├── 33
 │   │   │   └── de73376663f28aa45884e9eeb2e146b6dab0d9
@@ -1033,7 +1083,12 @@ C:\Users\nasle javan\Downloads\r48jd4j98r498ej-main\r48jd4j98r498ej-main\logs\ve
 │   │   │   └── f8a2068d7b1a176a0f84b5f21dc6fd5ab3fda8
   [Error: 'utf-8' codec can't decode byte 0xbd in position 16: invalid start byte]
 │   │   ├── 38
+│   │   │   ├── b7c6056dde07f3bf2b8bb6aff3b972d95714d5
+  [Error: 'utf-8' codec can't decode byte 0xc8 in position 18: invalid continuation byte]
 │   │   │   └── f0dfaaf066f7dc63dc035c834fa4a8fc9e91ba
+  [Error: 'utf-8' codec can't decode byte 0x95 in position 2: invalid start byte]
+│   │   ├── 39
+│   │   │   └── 94b93de1541c44a23513b5da889472f9113a05
   [Error: 'utf-8' codec can't decode byte 0x95 in position 2: invalid start byte]
 │   │   ├── 3a
 │   │   │   └── 5662dbe45b8d0694fc491911a5b989c140018b
@@ -1055,8 +1110,17 @@ C:\Users\nasle javan\Downloads\r48jd4j98r498ej-main\r48jd4j98r498ej-main\logs\ve
 │   │   ├── 44
 │   │   │   └── 320f9519fbb504c4b4489edcf1f255d521aed8
   [Error: 'utf-8' codec can't decode byte 0x9d in position 2: invalid start byte]
+│   │   ├── 45
+│   │   │   ├── 4c5e58432d286af911a0515da54ae808b74b45
+  [Error: 'utf-8' codec can't decode byte 0x95 in position 2: invalid start byte]
+│   │   │   └── e46f686ed65f73976a233f822fb33e623f870e
+  [Error: 'utf-8' codec can't decode byte 0x9d in position 2: invalid start byte]
 │   │   ├── 46
-│   │   │   └── 584c3362e042829c1f3d359745d26fac3ed64b
+│   │   │   ├── 40e95a7b965748614fe8d5d93b2a7c1093b1aa
+  [Error: 'utf-8' codec can't decode byte 0xe5 in position 2: invalid continuation byte]
+│   │   │   ├── 584c3362e042829c1f3d359745d26fac3ed64b
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   │   └── 61b91af778a2b914428a4818bfa24f7b9f32cb
   [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
 │   │   ├── 47
 │   │   │   ├── 409e1f204c7fa59fc0be477121ecbf7c34eca9
@@ -1075,32 +1139,57 @@ C:\Users\nasle javan\Downloads\r48jd4j98r498ej-main\r48jd4j98r498ej-main\logs\ve
 │   │   │   └── 61a9d1c42457da77287ca14de36d7e4ee8c2f9
   [Error: 'utf-8' codec can't decode byte 0xbd in position 2: invalid start byte]
 │   │   ├── 4c
+│   │   │   ├── 4b41ecbcb716505c0993ed96a61faf3b381734
+  [Error: 'utf-8' codec can't decode byte 0xbd in position 16: invalid start byte]
 │   │   │   └── b425ad206c4563a450d7421f4a7b6863122327
   [Error: 'utf-8' codec can't decode byte 0x8d in position 2: invalid start byte]
 │   │   ├── 4e
 │   │   │   └── eab533c30a7c310e1578b1c39f87904985e9ba
   [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
 │   │   ├── 4f
+│   │   │   ├── 4626f92b1455d0cd9d02130b7c94435ffa934f
+  [Error: 'utf-8' codec can't decode byte 0xbd in position 16: invalid start byte]
 │   │   │   └── baa4d2754fc59bf2607260b4e0a8bc715a0377
   [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
 │   │   ├── 50
 │   │   │   └── 41a366f0c0eac8f456048d5e9a9688ef4f2385
   [Error: 'utf-8' codec can't decode byte 0x95 in position 2: invalid start byte]
+│   │   ├── 52
+│   │   │   └── 4bfa5fdb676ea7383bfe6f10b28a55599304e2
+  [Error: 'utf-8' codec can't decode byte 0xa5 in position 2: invalid start byte]
+│   │   ├── 53
+│   │   │   └── cbed5dcbca00d658df3904051d35a2338055ee
+  [Error: 'utf-8' codec can't decode byte 0x95 in position 2: invalid start byte]
 │   │   ├── 54
 │   │   │   └── 99de63e5bb25b2fe45927a22ed14b60664c6e7
   [Error: 'utf-8' codec can't decode byte 0x95 in position 2: invalid start byte]
+│   │   ├── 55
+│   │   │   └── 3c57504a0ba0ef76e244d59eb31e5dcdc52e50
+  [Error: 'utf-8' codec can't decode byte 0xce in position 21: invalid continuation byte]
 │   │   ├── 56
 │   │   │   └── 164670e89c6b4e8b42134774e0e4edee7a8668
   [Error: 'utf-8' codec can't decode byte 0xbd in position 16: invalid start byte]
+│   │   ├── 58
+│   │   │   └── 4ad3383c12aeb95ca58c2a39438ea42c84c353
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 2: invalid start byte]
 │   │   ├── 59
+│   │   │   ├── 079e4a64647d13ccc1660ee929ea0c471f0001
+  [Error: 'utf-8' codec can't decode byte 0xb5 in position 2: invalid start byte]
 │   │   │   └── 2e91a5b867823c7ae9c4b5cbaae2178a4b4f54
   [Error: 'utf-8' codec can't decode byte 0xb2 in position 8: invalid start byte]
 │   │   ├── 5b
 │   │   │   └── 94fa435cc8dfb226bd020ec6fbb40639ec49ba
   [Error: 'utf-8' codec can't decode byte 0xbd in position 16: invalid start byte]
 │   │   ├── 5c
+│   │   │   ├── c587527a3d283c3ecf4328c3f3c4ff1c0209cc
+  [Error: 'utf-8' codec can't decode byte 0x95 in position 2: invalid start byte]
 │   │   │   └── c8a8009b8b70d965ee5d1d505355d90cb57817
   [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   ├── 5e
+│   │   │   ├── 0ba62a0ba14dc7a7e279ef874e8a14b4d54f64
+  [Error: 'utf-8' codec can't decode byte 0x95 in position 2: invalid start byte]
+│   │   │   └── c47f675d18ef0663fb19be2742ecd29530930d
+  [Error: 'utf-8' codec can't decode byte 0xb5 in position 2: invalid start byte]
 │   │   ├── 5f
 │   │   │   └── 62244a65817c7cfdfd61b63cd6106e9840ec0c
   [Error: 'utf-8' codec can't decode byte 0xad in position 2: invalid start byte]
@@ -1108,8 +1197,12 @@ C:\Users\nasle javan\Downloads\r48jd4j98r498ej-main\r48jd4j98r498ej-main\logs\ve
 │   │   │   └── 6d2840a36ca2a48d2e961a801755494a3caa9e
   [Error: 'utf-8' codec can't decode byte 0x95 in position 2: invalid start byte]
 │   │   ├── 62
-│   │   │   └── 7a2a9f3a8cd1dc438f5f199e8b9b6cf040316d
+│   │   │   ├── 7a2a9f3a8cd1dc438f5f199e8b9b6cf040316d
   [Error: 'utf-8' codec can't decode byte 0xb2 in position 8: invalid start byte]
+│   │   │   ├── 96d8b84f96d211f0cda4e0e6580e1cf81a0c95
+  [Error: 'utf-8' codec can't decode byte 0xc8 in position 18: invalid continuation byte]
+│   │   │   └── c948637a4f82006f655e46b470d1f9f2e47046
+  [Error: 'utf-8' codec can't decode byte 0xcd in position 2: invalid continuation byte]
 │   │   ├── 63
 │   │   │   └── a80aa860e3163364642fbdfb83509ea676bdec
   [Error: 'utf-8' codec can't decode byte 0xc8 in position 18: invalid continuation byte]
@@ -1132,8 +1225,12 @@ C:\Users\nasle javan\Downloads\r48jd4j98r498ej-main\r48jd4j98r498ej-main\logs\ve
 │   │   │   └── 2f7e6f15d0d335b2e8e5fb1d3b8b5291ea7371
   [Error: 'utf-8' codec can't decode byte 0x8d in position 2: invalid start byte]
 │   │   ├── 6d
-│   │   │   └── 475560e6a36e1d8fb60e323ab9ab9335e5d671
+│   │   │   ├── 475560e6a36e1d8fb60e323ab9ab9335e5d671
   [Error: 'utf-8' codec can't decode byte 0xc8 in position 18: invalid continuation byte]
+│   │   │   ├── 836833d5478f60974da11939da33f8079876f2
+  [Error: 'utf-8' codec can't decode byte 0xa5 in position 2: invalid start byte]
+│   │   │   └── b3ef3455a38c7e3436d363c9541df602cdcbb8
+  [Error: 'utf-8' codec can't decode byte 0xb0 in position 7: invalid start byte]
 │   │   ├── 6e
 │   │   │   ├── 7dd515628cad154cfb3e6fbb167f2d6145a5eb
   [Error: 'utf-8' codec can't decode byte 0xc8 in position 18: invalid continuation byte]
@@ -1149,8 +1246,13 @@ C:\Users\nasle javan\Downloads\r48jd4j98r498ej-main\r48jd4j98r498ej-main\logs\ve
 │   │   ├── 70
 │   │   │   ├── 2d6b524fd7619346ba31d75df9527b9a6e57fd
   [Error: 'utf-8' codec can't decode byte 0xd5 in position 2: invalid continuation byte]
-│   │   │   └── 4ad4df8fabbb99bf11a439ff6b1fe05d0dfdd4
+│   │   │   ├── 4ad4df8fabbb99bf11a439ff6b1fe05d0dfdd4
   [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   │   └── 8bf0b8455f91a9f8a4452c6109b2a208cd9cb3
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   ├── 71
+│   │   │   └── 624f2a93420069bfdb4e6042bf813f6bd96ecc
+  [Error: 'utf-8' codec can't decode byte 0x9d in position 2: invalid start byte]
 │   │   ├── 72
 │   │   │   └── 9663db7213d51b44b57d1c7939d929ddf2ddf8
   [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
@@ -1178,6 +1280,8 @@ C:\Users\nasle javan\Downloads\r48jd4j98r498ej-main\r48jd4j98r498ej-main\logs\ve
 │   │   │   └── ff029119c358b60ab6151762db7c7e885b44a2
   [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
 │   │   ├── 7b
+│   │   │   ├── 410ffd245a720de0f1be7cb109f52e54400636
+  [Error: 'utf-8' codec can't decode byte 0xb2 in position 8: invalid start byte]
 │   │   │   └── 7c9f3a52713e14f1884009727dab0b75b14e2f
   [Error: 'utf-8' codec can't decode byte 0x8d in position 2: invalid start byte]
 │   │   ├── 7d
@@ -1236,14 +1340,24 @@ C:\Users\nasle javan\Downloads\r48jd4j98r498ej-main\r48jd4j98r498ej-main\logs\ve
 │   │   ├── 9a
 │   │   │   ├── 3a7ffc8f63e11ad6bc984f86ca0401892ced44
   [Error: 'utf-8' codec can't decode byte 0xcd in position 2: invalid continuation byte]
-│   │   │   └── c0f8b750cb8d29e19793f51a0e2a37203cb384
+│   │   │   ├── 94c7ef73cf587b3edb5566b9695d1f417bac47
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   │   ├── c0f8b750cb8d29e19793f51a0e2a37203cb384
   [Error: 'utf-8' codec can't decode byte 0x95 in position 2: invalid start byte]
+│   │   │   └── d8ab475f42fbb5364b1637adff8816d9d487e3
+  [Error: 'utf-8' codec can't decode byte 0xc8 in position 18: invalid continuation byte]
 │   │   ├── 9b
 │   │   │   └── 4c86c1774371ddda37694a445548edee254f8d
   [Error: 'utf-8' codec can't decode byte 0xdb in position 4: invalid continuation byte]
 │   │   ├── 9c
 │   │   │   └── 9b0339fe70e812040e389c9896f36b612a5f0e
   [Error: 'utf-8' codec can't decode byte 0xad in position 2: invalid start byte]
+│   │   ├── 9d
+│   │   │   └── 65b0e8b109453dd9318080f0c99a76c47dc117
+  [Error: 'utf-8' codec can't decode byte 0xe5 in position 2: invalid continuation byte]
+│   │   ├── 9f
+│   │   │   └── e815b6958820c8e31f46376ea9bf756070bc79
+  [Error: 'utf-8' codec can't decode byte 0xcd in position 2: invalid continuation byte]
 │   │   ├── a1
 │   │   │   └── 39e434d84b685cedeac21bc6130c3ae989bd58
   [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
@@ -1257,6 +1371,12 @@ C:\Users\nasle javan\Downloads\r48jd4j98r498ej-main\r48jd4j98r498ej-main\logs\ve
 │   │   │   ├── 2b2e7f74439347727555be28c6eda7e524b95a
   [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
 │   │   │   └── dcfc21b49b32211cf18a56d53ead99fe54481d
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   ├── a5
+│   │   │   └── d2ae1d5e0dc741f5601a7d4b09f58286f3c491
+  [Error: 'utf-8' codec can't decode byte 0xad in position 2: invalid start byte]
+│   │   ├── a6
+│   │   │   └── 54eba832b510d4600805bf753857449891cf3f
   [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
 │   │   ├── a9
 │   │   │   └── 9a0bd0801451fc70eb622e0795cbc876303a90
@@ -1279,11 +1399,20 @@ C:\Users\nasle javan\Downloads\r48jd4j98r498ej-main\r48jd4j98r498ej-main\logs\ve
 │   │   ├── ae
 │   │   │   ├── 242ded627dafd487a5e303b096bcd3346ca029
   [Error: 'utf-8' codec can't decode byte 0xb5 in position 2: invalid start byte]
+│   │   │   ├── 2571bfc92eda51f1775d319fdd78d73c6c44e1
+  [Error: 'utf-8' codec can't decode byte 0xcd in position 2: invalid continuation byte]
 │   │   │   └── cbe3711d5164106458a00109f2446a7f5442fa
   [Error: 'utf-8' codec can't decode byte 0xd3 in position 6: invalid continuation byte]
+│   │   ├── af
+│   │   │   └── 76def431296eb8a260f75362cfef0838642036
+  [Error: 'utf-8' codec can't decode byte 0xce in position 21: invalid continuation byte]
 │   │   ├── b0
-│   │   │   └── 0160951b1b55dcd64b17e3924b5df5792b7da2
+│   │   │   ├── 0160951b1b55dcd64b17e3924b5df5792b7da2
   [Error: 'utf-8' codec can't decode byte 0xad in position 2: invalid start byte]
+│   │   │   ├── 22d1f76ffc72a5fc9ed3936431531640862851
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   │   └── 892809dfaa1cd72f8d71678cb7f8130b6992cf
+  [Error: 'utf-8' codec can't decode byte 0xbd in position 16: invalid start byte]
 │   │   ├── b5
 │   │   │   └── 7d45cc5fa4e1804b7ac3c123de754494591336
   [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
@@ -1300,6 +1429,8 @@ C:\Users\nasle javan\Downloads\r48jd4j98r498ej-main\r48jd4j98r498ej-main\logs\ve
 │   │   │   └── da6cb0bbd83c3308e0444903fc52293750caca
   [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
 │   │   ├── bb
+│   │   │   ├── 62d7e42c3b541441197e728644b07fa2312e47
+  [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
 │   │   │   ├── 6fbe084dc9849ed23a36366b836ac957aca51c
   [Error: 'utf-8' codec can't decode byte 0x9d in position 2: invalid start byte]
 │   │   │   └── 71506674cf5a07c249524635497256e1b88349
@@ -1330,8 +1461,10 @@ C:\Users\nasle javan\Downloads\r48jd4j98r498ej-main\r48jd4j98r498ej-main\logs\ve
 │   │   │   └── 9aeb457fe1d0916f5b6eba807785967ae17d2c
   [Error: 'utf-8' codec can't decode byte 0xce in position 3: invalid continuation byte]
 │   │   ├── c5
-│   │   │   └── 46739c7bbf3f8905f65e75a31da31795759f5a
+│   │   │   ├── 46739c7bbf3f8905f65e75a31da31795759f5a
   [Error: 'utf-8' codec can't decode byte 0xbd in position 16: invalid start byte]
+│   │   │   └── c93567da754316853563159a66e64ff0555042
+  [Error: 'utf-8' codec can't decode byte 0xc8 in position 18: invalid continuation byte]
 │   │   ├── c9
 │   │   │   ├── 0db6d68fa14cb60709fd2c367c95322aff46d0
   [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
@@ -1351,11 +1484,17 @@ C:\Users\nasle javan\Downloads\r48jd4j98r498ej-main\r48jd4j98r498ej-main\logs\ve
 │   │   ├── ce
 │   │   │   └── 6ddb22ec04a88fc7e0bf3fc3cff654010ce107
   [Error: 'utf-8' codec can't decode byte 0xb2 in position 8: invalid start byte]
+│   │   ├── cf
+│   │   │   └── 49822da076b9ea11784f54c6a4c217a1ece461
+  [Error: 'utf-8' codec can't decode byte 0xb2 in position 8: invalid start byte]
 │   │   ├── d0
 │   │   │   ├── cd49189af0c7b5117a83b83bcd2e8aa833e63d
   [Error: 'utf-8' codec can't decode byte 0x85 in position 2: invalid start byte]
 │   │   │   └── ff542c065726b9f8a7b84f15fab3d2d0fa1441
   [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
+│   │   ├── d1
+│   │   │   └── 665ff490f193f7e001315e253d26b5ac501e99
+  [Error: 'utf-8' codec can't decode byte 0x8d in position 2: invalid start byte]
 │   │   ├── d2
 │   │   │   └── 5974f944247014f9f5f8342668d8c78df22bdb
   [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
@@ -1365,8 +1504,10 @@ C:\Users\nasle javan\Downloads\r48jd4j98r498ej-main\r48jd4j98r498ej-main\logs\ve
 │   │   │   └── 8ae275148dc57cc43d390264250d80348c760d
   [Error: 'utf-8' codec can't decode byte 0x8d in position 2: invalid start byte]
 │   │   ├── d4
-│   │   │   └── 4abff399c5219d60ddfa33d15580f98908f3d5
+│   │   │   ├── 4abff399c5219d60ddfa33d15580f98908f3d5
   [Error: 'utf-8' codec can't decode byte 0xb2 in position 8: invalid start byte]
+│   │   │   └── cbeb7d1b952abc043669c49259b7b1a92fbec3
+  [Error: 'utf-8' codec can't decode byte 0xc8 in position 18: invalid continuation byte]
 │   │   ├── d6
 │   │   │   ├── 03e98688ed4164b4fbb6e547f230e0dd204570
   [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
@@ -1393,6 +1534,8 @@ C:\Users\nasle javan\Downloads\r48jd4j98r498ej-main\r48jd4j98r498ej-main\logs\ve
 │   │   │   └── db32ac14c3f15f919784b104ab04b81c4a65c1
   [Error: 'utf-8' codec can't decode byte 0xbd in position 2: invalid start byte]
 │   │   ├── e6
+│   │   │   ├── 02d0935b8474a82874e33b2fe20f62e5d1239f
+  [Error: 'utf-8' codec can't decode byte 0x95 in position 2: invalid start byte]
 │   │   │   └── d1d497e547f646acfd04591de4ac747ce18cbd
   [Error: 'utf-8' codec can't decode byte 0x85 in position 14: invalid start byte]
 │   │   ├── e7
@@ -1457,18 +1600,20 @@ C:\Users\nasle javan\Downloads\r48jd4j98r498ej-main\r48jd4j98r498ej-main\logs\ve
 │   │   │   └── 7b216714a6f640a6d0e2639f6abd6e3cfb9e66
   [Error: 'utf-8' codec can't decode byte 0xc8 in position 18: invalid continuation byte]
 │   │   ├── fe
-│   │   │   └── 1b687d85c17c2de7543053c7f4ef52ad3fcd73
+│   │   │   ├── 1b687d85c17c2de7543053c7f4ef52ad3fcd73
   [Error: 'utf-8' codec can't decode byte 0xbd in position 16: invalid start byte]
+│   │   │   └── d760c23ff27387a70197641f0ff665864100fd
+  [Error: 'utf-8' codec can't decode byte 0xb0 in position 7: invalid start byte]
 │   │   ├── info
 │   │   └── pack
 │   └── refs
 │       ├── heads
 │       │   └── main
-  5499de63e5bb25b2fe45927a22ed14b60664c6e7
+  454c5e58432d286af911a0515da54ae808b74b45
 │       ├── remotes
 │       │   └── origin
 │       │       └── main
-  5499de63e5bb25b2fe45927a22ed14b60664c6e7
+  454c5e58432d286af911a0515da54ae808b74b45
 │       └── tags
 ├── .github
 │   └── workflows
@@ -1650,12 +1795,16 @@ C:\Users\nasle javan\Downloads\r48jd4j98r498ej-main\r48jd4j98r498ej-main\logs\ve
               <url>https://repo.papermc.io/repository/maven-public/</url>
           </repository>
           <repository>
-              <id>spigot-repo</id>
+              <id>spigotmc-repo</id>
               <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
           </repository>
           <repository>
               <id>sonatype</id>
               <url>https://oss.sonatype.org/content/groups/public/</url>
+          </repository>
+          <repository>
+              <id>codemc</id>
+              <url>https://repo.codemc.io/repository/maven-public/</url>
           </repository>
       </repositories>
   
@@ -1698,6 +1847,13 @@ C:\Users\nasle javan\Downloads\r48jd4j98r498ej-main\r48jd4j98r498ej-main\logs\ve
               <artifactId>spigot-api</artifactId>
               <version>1.8.8-R0.1-SNAPSHOT</version>
               <scope>provided</scope>
+              <exclusions>
+                  <!-- Broken transitive dependency that no longer exists on any repo -->
+                  <exclusion>
+                      <groupId>net.md-5</groupId>
+                      <artifactId>bungeecord-chat</artifactId>
+                  </exclusion>
+              </exclusions>
           </dependency>
       </dependencies>
   
@@ -2131,21 +2287,8 @@ C:\Users\nasle javan\Downloads\r48jd4j98r498ej-main\r48jd4j98r498ej-main\logs\ve
   
   import java.time.LocalTime;
   import java.time.format.DateTimeFormatter;
-  import java.util.Optional;
   import java.util.UUID;
   
-  /**
-   * Receives plugin messages from Spigot backends.
-   *
-   * v2.0 message protocol:
-   *   OP_STATUS -> "OP_STATUS" | uuid | name | server | isOp
-   *   CMD       -> "CMD"       | uuid | name | server | isOp | command
-   *
-   * The OP flag is included in every CMD message, so OP detection works
-   * even if the join-time OP_STATUS message was lost.
-   *
-   * @author muvixo
-   */
   public class BackendMessageReceiver {
   
       private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm:ss");
@@ -2154,16 +2297,14 @@ C:\Users\nasle javan\Downloads\r48jd4j98r498ej-main\r48jd4j98r498ej-main\logs\ve
       private final Logger logger;
       private final Config config;
       private final OpPlayerManager opManager;
-      private final PermissionChecker permChecker;
       private final MinecraftChannelIdentifier channel;
   
       public BackendMessageReceiver(ProxyServer server, Logger logger, Config config,
-                                    OpPlayerManager opManager, PermissionChecker permChecker) {
+                                    OpPlayerManager opManager) {
           this.server = server;
           this.logger = logger;
           this.config = config;
           this.opManager = opManager;
-          this.permChecker = permChecker;
           this.channel = MinecraftChannelIdentifier.from(config.getChannel());
       }
   
@@ -2198,7 +2339,6 @@ C:\Users\nasle javan\Downloads\r48jd4j98r498ej-main\r48jd4j98r498ej-main\logs\ve
                   boolean isOp = Boolean.parseBoolean(in.readUTF());
                   String command = in.readUTF();
   
-                  // Refresh OP status from every command (bulletproof)
                   if (isOp) opManager.markOp(uuid, name, serverName);
   
                   broadcast(name, serverName, command);
@@ -2222,19 +2362,9 @@ C:\Users\nasle javan\Downloads\r48jd4j98r498ej-main\r48jd4j98r498ej-main\logs\ve
           int total = 0, sent = 0;
           for (Player online : server.getAllPlayers()) {
               total++;
-              boolean canSee = permChecker.canSee(online);
-              boolean isSelf = config.isShowToSelf()
-                      && online.getUsername().equalsIgnoreCase(playerName);
-  
-              if (canSee || isSelf) {
-                  online.sendMessage(message);
-                  sent++;
-              }
-              if (config.isDebug() && online.getUsername().equalsIgnoreCase(playerName)) {
-                  logger.info("[DEBUG] Executor {} -> canSee={}, isSelf={}, opTracked={}",
-                          playerName, canSee, isSelf,
-                          opManager.isOp(online.getUniqueId()));
-              }
+              if (!opManager.isOp(online.getUniqueId())) continue;
+              online.sendMessage(message);
+              sent++;
           }
   
           if (config.isLogToConsole()) {
@@ -2290,20 +2420,18 @@ C:\Users\nasle javan\Downloads\r48jd4j98r498ej-main\r48jd4j98r498ej-main\logs\ve
   
   import org.slf4j.Logger;
   import org.spongepowered.configurate.CommentedConfigurationNode;
-  import org.spongepowered.configurate.serialize.SerializationException;
   import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
   
   import java.io.IOException;
   import java.io.InputStream;
   import java.nio.file.Files;
   import java.nio.file.Path;
-  import java.util.ArrayList;
-  import java.util.List;
-  import java.util.Locale;
-  import java.util.stream.Collectors;
   
   /**
    * Config manager for VelocityLogs v2.0.
+   *
+   * In this revision, permission nodes and force-see-players have been
+   * removed. Only backend-reported OP status grants log visibility.
    *
    * @author muvixo
    */
@@ -2313,11 +2441,6 @@ C:\Users\nasle javan\Downloads\r48jd4j98r498ej-main\r48jd4j98r498ej-main\logs\ve
       private final Logger logger;
   
       private String channel;
-      private String seePermission;
-      private String reloadPermission;
-      private String adminPermission;
-      private List<String> extraSeePermissions;
-      private List<String> forceSeePlayers;
       private String messageFormat;
       private String reloadSuccessMessage;
       private String noPermissionMessage;
@@ -2352,20 +2475,6 @@ C:\Users\nasle javan\Downloads\r48jd4j98r498ej-main\r48jd4j98r498ej-main\logs\ve
           }
   
           this.channel = root.node("channel").getString("velocitylogs:main");
-          this.seePermission = root.node("see-permission").getString("velocitylogs.see");
-          this.reloadPermission = root.node("reload-permission").getString("velocitylogs.reload");
-          this.adminPermission = root.node("admin-permission").getString("velocitylogs.admin");
-  
-          // --- FIX: getList() throws SerializationException, wrap it ---
-          List<String> extras = safeGetList(root, "extra-see-permissions");
-          this.extraSeePermissions = extras;
-  
-          List<String> force = safeGetList(root, "force-see-players");
-          this.forceSeePlayers = force.stream()
-                  .filter(s -> s != null && !s.isEmpty())
-                  .map(s -> s.toLowerCase(Locale.ROOT).trim())
-                  .collect(Collectors.toList());
-  
           this.showToSelf = root.node("show-to-self").getBoolean(false);
           this.logToConsole = root.node("log-to-console").getBoolean(true);
           this.debug = root.node("debug").getBoolean(true);
@@ -2379,25 +2488,7 @@ C:\Users\nasle javan\Downloads\r48jd4j98r498ej-main\r48jd4j98r498ej-main\logs\ve
                   "&c[!] You don't have permission to do that!");
       }
   
-      /**
-       * Safely reads a list of strings from config, swallowing SerializationException.
-       */
-      private List<String> safeGetList(CommentedConfigurationNode root, String key) {
-          try {
-              List<String> list = root.node(key).getList(String.class);
-              return list == null ? new ArrayList<>() : list;
-          } catch (SerializationException e) {
-              logger.warn("Could not read list '{}' from config: {}", key, e.getMessage());
-              return new ArrayList<>();
-          }
-      }
-  
       public String getChannel() { return channel; }
-      public String getSeePermission() { return seePermission; }
-      public String getReloadPermission() { return reloadPermission; }
-      public String getAdminPermission() { return adminPermission; }
-      public List<String> getExtraSeePermissions() { return extraSeePermissions; }
-      public List<String> getForceSeePlayers() { return forceSeePlayers; }
       public String getMessageFormat() { return messageFormat; }
       public String getReloadSuccessMessage() { return reloadSuccessMessage; }
       public String getNoPermissionMessage() { return noPermissionMessage; }
@@ -2405,11 +2496,6 @@ C:\Users\nasle javan\Downloads\r48jd4j98r498ej-main\r48jd4j98r498ej-main\logs\ve
       public boolean isLogToConsole() { return logToConsole; }
       public boolean isDebug() { return debug; }
       public int getOpCacheExpireMinutes() { return opCacheExpireMinutes; }
-  
-      public boolean isForceSee(String playerName) {
-          if (playerName == null || forceSeePlayers == null) return false;
-          return forceSeePlayers.contains(playerName.toLowerCase(Locale.ROOT));
-      }
   }
             │                   ├── LogsCommand.java
   package ir.muvixo.logs.velocity;
@@ -2429,7 +2515,10 @@ C:\Users\nasle javan\Downloads\r48jd4j98r498ej-main\r48jd4j98r498ej-main\logs\ve
   import java.util.UUID;
   
   /**
-   * /logs command with info, help, reload, debug, op, unop, list.
+   * /logs command with info, help, reload, debug, status, list.
+   * The /logs op and /logs unop subcommands have been removed.
+   * Only players who are actually OP on a backend (as reported by the
+   * Spigot plugin) can see the logs.
    *
    * @author muvixo
    */
@@ -2496,42 +2585,6 @@ C:\Users\nasle javan\Downloads\r48jd4j98r498ej-main\r48jd4j98r498ej-main\logs\ve
                   return;
               }
   
-              case "op": {
-                  if (!canReload(source)) { noPerm(source); return; }
-                  if (args.length < 2) {
-                      source.sendMessage(Component.text("Usage: /logs op <player>", NamedTextColor.RED));
-                      return;
-                  }
-                  Optional<Player> opt = server.getPlayer(args[1]);
-                  if (opt.isEmpty()) {
-                      source.sendMessage(Component.text("Player not found: " + args[1], NamedTextColor.RED));
-                      return;
-                  }
-                  Player p = opt.get();
-                  opManager.markOpManual(p.getUniqueId(), p.getUsername());
-                  source.sendMessage(Component.text("[OK] ", NamedTextColor.GREEN)
-                          .append(Component.text(p.getUsername() + " marked as OP.", NamedTextColor.WHITE)));
-                  return;
-              }
-  
-              case "unop": {
-                  if (!canReload(source)) { noPerm(source); return; }
-                  if (args.length < 2) {
-                      source.sendMessage(Component.text("Usage: /logs unop <player>", NamedTextColor.RED));
-                      return;
-                  }
-                  Optional<Player> opt = server.getPlayer(args[1]);
-                  if (opt.isEmpty()) {
-                      source.sendMessage(Component.text("Player not found: " + args[1], NamedTextColor.RED));
-                      return;
-                  }
-                  Player p = opt.get();
-                  opManager.unmarkOp(p.getUniqueId(), p.getUsername());
-                  source.sendMessage(Component.text("[OK] ", NamedTextColor.GREEN)
-                          .append(Component.text(p.getUsername() + " unmarked.", NamedTextColor.WHITE)));
-                  return;
-              }
-  
               default:
                   sendInfo(source);
           }
@@ -2543,8 +2596,6 @@ C:\Users\nasle javan\Downloads\r48jd4j98r498ej-main\r48jd4j98r498ej-main\logs\ve
                   .append(Component.text("by muvixo", NamedTextColor.AQUA)));
           source.sendMessage(Component.text("Channel: ", NamedTextColor.GRAY)
                   .append(Component.text(config.getChannel(), NamedTextColor.WHITE)));
-          source.sendMessage(Component.text("See permission: ", NamedTextColor.GRAY)
-                  .append(Component.text(config.getSeePermission(), NamedTextColor.WHITE)));
           source.sendMessage(Component.text("Tracked OPs: ", NamedTextColor.GRAY)
                   .append(Component.text(String.valueOf(opManager.getOpCount()), NamedTextColor.WHITE)));
           source.sendMessage(Component.text("Type ", NamedTextColor.GRAY)
@@ -2559,8 +2610,6 @@ C:\Users\nasle javan\Downloads\r48jd4j98r498ej-main\r48jd4j98r498ej-main\logs\ve
           row(source, "/logs reload", "reload config");
           row(source, "/logs debug <player>", "diagnose player");
           row(source, "/logs status <player>", "same as debug");
-          row(source, "/logs op <player>", "mark player as OP");
-          row(source, "/logs unop <player>", "unmark player");
           row(source, "/logs list", "list tracked OPs");
       }
   
@@ -2579,8 +2628,8 @@ C:\Users\nasle javan\Downloads\r48jd4j98r498ej-main\r48jd4j98r498ej-main\logs\ve
           long now = System.currentTimeMillis();
           for (OpPlayerManager.OpRecord r : ops.values()) {
               long ageSec = (now - r.lastSeen) / 1000;
-              String line = String.format("  %s | server=%s | manual=%s | lastSeen=%ds ago",
-                      r.name, r.serverName, r.manual, ageSec);
+              String line = String.format("  %s | server=%s | lastSeen=%ds ago",
+                      r.name, r.serverName, ageSec);
               source.sendMessage(Component.text(line, NamedTextColor.GRAY));
           }
       }
@@ -2591,8 +2640,6 @@ C:\Users\nasle javan\Downloads\r48jd4j98r498ej-main\r48jd4j98r498ej-main\logs\ve
   
       private boolean canReload(CommandSource source) {
           if (!(source instanceof Player player)) return true; // console always allowed
-          if (player.hasPermission(config.getReloadPermission())) return true;
-          if (player.hasPermission(config.getAdminPermission())) return true;
           return permChecker.canReload(player);
       }
   
@@ -2605,11 +2652,10 @@ C:\Users\nasle javan\Downloads\r48jd4j98r498ej-main\r48jd4j98r498ej-main\logs\ve
       public List<String> suggest(Invocation invocation) {
           String[] args = invocation.arguments();
           if (args.length <= 1) {
-              return List.of("reload", "help", "debug", "status", "op", "unop", "list");
+              return List.of("reload", "help", "debug", "status", "list");
           }
           String sub = args[0].toLowerCase();
-          if (args.length == 2 && (sub.equals("debug") || sub.equals("status")
-                  || sub.equals("op") || sub.equals("unop"))) {
+          if (args.length == 2 && (sub.equals("debug") || sub.equals("status"))) {
               List<String> names = new ArrayList<>();
               for (Player p : server.getAllPlayers()) names.add(p.getUsername());
               return names;
@@ -2630,16 +2676,6 @@ C:\Users\nasle javan\Downloads\r48jd4j98r498ej-main\r48jd4j98r498ej-main\logs\ve
   import java.util.UUID;
   import java.util.concurrent.ConcurrentHashMap;
   
-  /**
-   * Tracks players who are OP on their current backend.
-   *
-   * v2.0 changes:
-   *   - UUID-based tracking
-   *   - lastSeen timestamp so we can expire stale entries
-   *   - manualOverride flag for /logs op
-   *
-   * @author muvixo
-   */
   public class OpPlayerManager {
   
       public static class OpRecord {
@@ -2647,14 +2683,12 @@ C:\Users\nasle javan\Downloads\r48jd4j98r498ej-main\r48jd4j98r498ej-main\logs\ve
           public volatile String name;
           public volatile String serverName;
           public volatile long lastSeen;
-          public volatile boolean manual;
   
-          public OpRecord(UUID uuid, String name, String serverName, boolean manual) {
+          public OpRecord(UUID uuid, String name, String serverName) {
               this.uuid = uuid;
               this.name = name;
               this.serverName = serverName;
               this.lastSeen = System.currentTimeMillis();
-              this.manual = manual;
           }
   
           public void refresh(String serverName) {
@@ -2682,21 +2716,12 @@ C:\Users\nasle javan\Downloads\r48jd4j98r498ej-main\r48jd4j98r498ej-main\logs\ve
               existing.name = playerName;
               return;
           }
-          OpRecord rec = new OpRecord(uuid, playerName, serverName, false);
+          OpRecord rec = new OpRecord(uuid, playerName, serverName);
           opPlayers.put(uuid, rec);
           nameIndex.put(playerName.toLowerCase(), uuid);
           if (logger != null) {
               logger.info("[OP-TRACK] Marked {} ({}) as OP (backend: {})",
                       playerName, uuid, serverName);
-          }
-      }
-  
-      public void markOpManual(UUID uuid, String playerName) {
-          OpRecord rec = new OpRecord(uuid, playerName, "manual", true);
-          opPlayers.put(uuid, rec);
-          nameIndex.put(playerName.toLowerCase(), uuid);
-          if (logger != null) {
-              logger.info("[OP-TRACK] Manually marked {} ({}) as OP", playerName, uuid);
           }
       }
   
@@ -2712,9 +2737,9 @@ C:\Users\nasle javan\Downloads\r48jd4j98r498ej-main\r48jd4j98r498ej-main\logs\ve
           if (uuid == null) return false;
           OpRecord rec = opPlayers.get(uuid);
           if (rec == null) return false;
-          // expire stale non-manual entries when player is offline
+  
           int expire = config != null ? config.getOpCacheExpireMinutes() : 30;
-          if (expire > 0 && !rec.manual) {
+          if (expire > 0) {
               boolean online = server.getPlayer(uuid).isPresent();
               long age = System.currentTimeMillis() - rec.lastSeen;
               if (!online && age > expire * 60_000L) {
@@ -2749,9 +2774,7 @@ C:\Users\nasle javan\Downloads\r48jd4j98r498ej-main\r48jd4j98r498ej-main\logs\ve
       public void onDisconnect(DisconnectEvent event) {
           UUID uuid = event.getPlayer().getUniqueId();
           OpRecord rec = opPlayers.get(uuid);
-          if (rec != null && !rec.manual) {
-              // Keep record but mark lastSeen old; isOp() will expire it.
-              // This preserves OP across quick reconnects.
+          if (rec != null) {
               rec.lastSeen = System.currentTimeMillis();
           }
       }
@@ -2773,19 +2796,12 @@ C:\Users\nasle javan\Downloads\r48jd4j98r498ej-main\r48jd4j98r498ej-main\logs\ve
   import com.velocitypowered.api.proxy.Player;
   import org.slf4j.Logger;
   
-  import java.util.List;
-  import java.util.Locale;
-  
   /**
    * Central permission checker.
    *
-   * Order of checks:
-   *   1. force-see-players list (from config)
-   *   2. explicit see-permission
-   *   3. admin permission
-   *   4. extra see-permissions from config
-   *   5. tracked-as-OP (from backend)
-   *   6. wildcard permissions ("*", "velocity.*")
+   * In this revision, ONLY players who are actually OP on a backend
+   * (as reported by the Spigot plugin via OP_STATUS / CMD messages) are
+   * allowed to see the command logs and to run admin subcommands.
    *
    * @author muvixo
    */
@@ -2803,79 +2819,22 @@ C:\Users\nasle javan\Downloads\r48jd4j98r498ej-main\r48jd4j98r498ej-main\logs\ve
   
       public boolean canSee(Player player) {
           if (player == null) return false;
-  
-          // 1. force-see list
-          if (config.isForceSee(player.getUsername())) return true;
-  
-          // 2. explicit see permission
-          if (safeHas(player, config.getSeePermission())) return true;
-  
-          // 3. admin permission
-          if (safeHas(player, config.getAdminPermission())) return true;
-  
-          // 4. extra permissions
-          List<String> extras = config.getExtraSeePermissions();
-          if (extras != null) {
-              for (String perm : extras) {
-                  if (perm == null || perm.isEmpty()) continue;
-                  if (safeHas(player, perm)) return true;
-              }
-          }
-  
-          // 5. tracked as OP on a backend
-          if (opManager.isOp(player.getUniqueId())) return true;
-  
-          // 6. wildcards
-          if (safeHas(player, "*")) return true;
-          if (safeHas(player, "velocity.*")) return true;
-  
-          return false;
+          return opManager.isOp(player.getUniqueId());
       }
   
-      private boolean safeHas(Player player, String permission) {
-          if (permission == null || permission.isEmpty()) return false;
-          try {
-              return player.hasPermission(permission);
-          } catch (Exception e) {
-              if (config.isDebug() && logger != null) {
-                  logger.warn("Permission check failed for {} on {}: {}",
-                          player.getUsername(), permission, e.getMessage());
-              }
-              return false;
-          }
+      public boolean canReload(Player player) {
+          if (player == null) return false;
+          return opManager.isOp(player.getUniqueId());
       }
   
       public String explain(Player player) {
           StringBuilder sb = new StringBuilder();
-          sb.append("Player: ").append(player.getUsername()).append(" (").append(player.getUniqueId()).append(")\n");
-          sb.append("  force-see: ").append(config.isForceSee(player.getUsername())).append("\n");
-          sb.append("  see-permission (").append(config.getSeePermission()).append("): ")
-            .append(safeHas(player, config.getSeePermission())).append("\n");
-          sb.append("  admin-permission (").append(config.getAdminPermission()).append("): ")
-            .append(safeHas(player, config.getAdminPermission())).append("\n");
+          sb.append("Player: ").append(player.getUsername())
+            .append(" (").append(player.getUniqueId()).append(")\n");
           sb.append("  tracked-as-op: ").append(opManager.isOp(player.getUniqueId())).append("\n");
           sb.append("  op-server: ").append(opManager.getOpServer(player.getUniqueId())).append("\n");
-          sb.append("  wildcard-*: ").append(safeHas(player, "*")).append("\n");
-          sb.append("  wildcard-velocity.*: ").append(safeHas(player, "velocity.*")).append("\n");
-  
-          List<String> extras = config.getExtraSeePermissions();
-          if (extras != null && !extras.isEmpty()) {
-              sb.append("  extra-see-permissions:\n");
-              for (String p : extras) {
-                  sb.append("    ").append(p).append(" -> ").append(safeHas(player, p)).append("\n");
-              }
-          }
           sb.append("  RESULT: ").append(canSee(player) ? "CAN SEE LOGS" : "CANNOT SEE LOGS");
           return sb.toString();
-      }
-  
-      public boolean canReload(Player player) {
-          if (safeHas(player, config.getReloadPermission())) return true;
-          if (safeHas(player, config.getAdminPermission())) return true;
-          if (opManager.isOp(player.getUniqueId())) return true;
-          if (safeHas(player, "*")) return true;
-          if (config.isForceSee(player.getUsername())) return true;
-          return false;
       }
   }
             │                   └── VelocityLogs.java
@@ -2896,12 +2855,6 @@ C:\Users\nasle javan\Downloads\r48jd4j98r498ej-main\r48jd4j98r498ej-main\logs\ve
   import java.nio.file.Files;
   import java.nio.file.Path;
   
-  /**
-   * VelocityLogs v2.0 - receives command logs from Spigot backends and broadcasts
-   * them to staff.
-   *
-   * @author muvixo
-   */
   @Plugin(
           id = "velocity-logs",
           name = "VelocityLogs",
@@ -2949,7 +2902,7 @@ C:\Users\nasle javan\Downloads\r48jd4j98r498ej-main\r48jd4j98r498ej-main\logs\ve
           this.channel = MinecraftChannelIdentifier.from(config.getChannel());
           server.getChannelRegistrar().register(channel);
   
-          this.receiver = new BackendMessageReceiver(server, logger, config, opManager, permissionChecker);
+          this.receiver = new BackendMessageReceiver(server, logger, config, opManager);
           server.getEventManager().register(this, receiver);
   
           CommandManager cm = server.getCommandManager();
@@ -2964,9 +2917,8 @@ C:\Users\nasle javan\Downloads\r48jd4j98r498ej-main\r48jd4j98r498ej-main\logs\ve
           logger.info("===========================================");
           logger.info("  VelocityLogs v2.0.0 by muvixo");
           logger.info("  Channel: {}", config.getChannel());
-          logger.info("  See permission: {}", config.getSeePermission());
+          logger.info("  Visibility: only backend OPs");
           logger.info("  Debug: {}", config.isDebug());
-          logger.info("  Force-see players: {}", config.getForceSeePlayers());
           logger.info("===========================================");
       }
   
@@ -2990,41 +2942,14 @@ C:\Users\nasle javan\Downloads\r48jd4j98r498ej-main\r48jd4j98r498ej-main\logs\ve
   # Plugin messaging channel. MUST match the Spigot side.
   channel: "velocitylogs:main"
   
-  # ---------------- Permissions ----------------
-  see-permission: "velocitylogs.see"
-  reload-permission: "velocitylogs.reload"
-  admin-permission: "velocitylogs.admin"
-  
-  # Extra permissions that automatically grant log visibility.
-  extra-see-permissions:
-    - "velocitylogs.*"
-    - "*"
-  
-  # ---------------- Force-see ----------------
-  # Players in this list ALWAYS see logs, regardless of permission.
-  # Use lowercase names. Works even if OP detection fails.
-  force-see-players:
-    - "muvixo"
-  
   # ---------------- Behaviour ----------------
-  # Should players who run a command see their own command in chat?
   show-to-self: false
-  
-  # Log every command to the proxy console as well?
   log-to-console: true
-  
-  # Print debug info to console.
   debug: true
-  
-  # Auto-remove OP entries for offline players after N minutes.
-  # Set 0 to keep forever (until proxy restart).
   op-cache-expire-minutes: 30
   
   # ---------------- Message Format ----------------
-  # Placeholders: {player} {server} {command} {time}
-  # Colors: &a &c &l ...  Hex: &#FF55FF
   message-format: "&8[&cLogs&8] &e{player} &8>> &b{server} &8>> &f/{command}"
-  
   reload-success-message: "&a[OK] Config reloaded successfully!"
   no-permission-message: "&c[!] You don't have permission to do that!"
                 └── velocity-plugin.json

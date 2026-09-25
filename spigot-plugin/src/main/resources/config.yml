@@ -27,3 +27,18 @@ blacklist:
 
 # Ignore commands from these players entirely.
 ignored-players: []
+
+# ============================================================
+#  Permission Nodes
+#  Read by /vlogs help to decide which commands to show.
+#  Override any node here to use a different permission name.
+# ============================================================
+permissions:
+  use:      "velocitylogs.use"
+  creator:  "velocitylogs.creator"
+
+  admin:    "velocitylogs.admin"
+  reload:   "velocitylogs.reload"
+  status:   "velocitylogs.status"
+  toggle:   "velocitylogs.toggle"
+  debug:    "velocitylogs.debug"

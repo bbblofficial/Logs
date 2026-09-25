@@ -15,6 +15,12 @@ public class SpigotLogs extends JavaPlugin {
 
     private Config config;
 
+    /** Toggle for command forwarding (runtime, resets on restart). */
+    private boolean forwardingEnabled = true;
+
+    /** Toggle for debug logging (runtime, resets on restart). */
+    private boolean debugEnabled = false;
+
     @Override
     public void onEnable() {
         saveDefaultConfig();
@@ -23,6 +29,13 @@ public class SpigotLogs extends JavaPlugin {
 
         getServer().getMessenger().registerOutgoingPluginChannel(this, config.getChannel());
         getServer().getPluginManager().registerEvents(new CommandInterceptor(this, config), this);
+
+        // Register /vlogs command
+        VLogsCommand cmd = new VLogsCommand(this, config);
+        if (getCommand("vlogs") != null) {
+            getCommand("vlogs").setExecutor(cmd);
+            getCommand("vlogs").setTabCompleter(cmd);
+        }
 
         long intervalTicks = config.getOpStatusIntervalMinutes() * 60L * 20L;
         if (intervalTicks > 0) {
@@ -49,6 +62,18 @@ public class SpigotLogs extends JavaPlugin {
         getLogger().info("VelocityLogs-Spigot disabled.");
     }
 
+    // ============================================================
+    //  RELOAD — used by /vlogs reload
+    // ============================================================
+    public void reloadAll() {
+        reloadConfig();
+        this.config.load();
+        getLogger().info("[VelocityLogs] Config reloaded.");
+    }
+
+    // ============================================================
+    //  MESSAGING
+    // ============================================================
     public void sendOpStatus(Player player, boolean isOp) {
         try {
             ByteArrayDataOutput out = ByteStreams.newDataOutput();
@@ -63,7 +88,14 @@ public class SpigotLogs extends JavaPlugin {
         }
     }
 
-    public Config getPluginConfig() {
-        return config;
-    }
+    // ============================================================
+    //  GETTERS / SETTERS
+    // ============================================================
+    public Config getPluginConfig()               { return config; }
+
+    public boolean isForwardingEnabled()          { return forwardingEnabled; }
+    public void setForwardingEnabled(boolean v)   { this.forwardingEnabled = v; }
+
+    public boolean isDebugEnabled()               { return debugEnabled; }
+    public void setDebugEnabled(boolean v)        { this.debugEnabled = v; }
 }

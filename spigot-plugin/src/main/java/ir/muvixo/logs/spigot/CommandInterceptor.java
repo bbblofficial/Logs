@@ -29,7 +29,6 @@ public class CommandInterceptor implements Listener {
     public void onJoin(PlayerJoinEvent event) {
         if (!config.isReportOpStatus()) return;
         Player player = event.getPlayer();
-        // Delay one tick to ensure the connection & channel are fully ready.
         plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
             if (player.isOnline()) {
                 plugin.sendOpStatus(player, player.isOp());
@@ -47,6 +46,10 @@ public class CommandInterceptor implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onCommand(PlayerCommandPreprocessEvent event) {
+
+        // Runtime toggle
+        if (!plugin.isForwardingEnabled()) return;
+
         Player player = event.getPlayer();
 
         if (!config.isLogOps() && player.isOp()) return;
@@ -59,6 +62,10 @@ public class CommandInterceptor implements Listener {
         if (command.isEmpty()) return;
         if (config.isBlacklisted(command)) return;
 
+        // Don't forward /vlogs commands (they're local)
+        String base = command.split(" ", 2)[0].toLowerCase();
+        if (base.equals("vlogs") || base.equals("velogs") || base.equals("velocitylogs")) return;
+
         try {
             ByteArrayDataOutput out = ByteStreams.newDataOutput();
             out.writeUTF("CMD");
@@ -68,6 +75,10 @@ public class CommandInterceptor implements Listener {
             out.writeUTF(Boolean.toString(player.isOp()));
             out.writeUTF(command);
             player.sendPluginMessage(plugin, config.getChannel(), out.toByteArray());
+
+            if (plugin.isDebugEnabled()) {
+                plugin.getLogger().info("[DEBUG] Forwarded: " + player.getName() + " -> /" + command);
+            }
         } catch (Exception e) {
             plugin.getLogger().warning("Failed to forward command: " + e.getMessage());
         }
