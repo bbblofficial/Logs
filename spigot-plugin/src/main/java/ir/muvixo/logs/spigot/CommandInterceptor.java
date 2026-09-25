@@ -11,11 +11,12 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 /**
- * Intercepts commands and forwards them with OP status to Velocity.
+ * Intercepts EVERY command a player types (even unknown ones, even ones
+ * that will be cancelled by other plugins) and forwards them to Velocity.
  *
- * v2.1 - Always reports current OP status with every command so that
- * stale OP entries on the proxy are cleared immediately (fixes regular
- * players seeing the logs after being de-opped while online).
+ * v2.2 - Uses ignoreCancelled = false so cancelled/unknown commands still
+ * get logged. Every command is reported together with the current OP status
+ * so the proxy never keeps a stale OP entry.
  *
  * @author muvixo
  */
@@ -42,39 +43,54 @@ public class CommandInterceptor implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onQuit(PlayerQuitEvent event) {
-        // Always tell the proxy this player is gone, so nothing stale remains.
         if (!config.isReportOpStatus()) return;
         plugin.sendOpStatus(event.getPlayer(), false);
     }
 
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    /**
+     * IMPORTANT:
+     *   priority         = MONITOR      -> runs after every other plugin
+     *   ignoreCancelled  = false        -> we still see commands other plugins cancelled
+     *
+     * This makes us catch:
+     *   - valid commands
+     *   - invalid/unknown commands
+     *   - commands blocked by other plugins
+     *   - commands the player lacks permission for
+     *
+     * Basically anything the client sends that starts with "/".
+     */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = false)
     public void onCommand(PlayerCommandPreprocessEvent event) {
 
-        // Runtime toggle
         if (!plugin.isForwardingEnabled()) return;
 
         Player player = event.getPlayer();
 
-        // --- FIX: Always sync the *current* OP status on every command. ---
-        // This ensures that if a player is de-opped while online, the proxy
-        // gets an "OP_STATUS false" immediately and stops showing them logs.
+        // Always sync the current OP status first (clears stale entries).
         if (config.isReportOpStatus()) {
             plugin.sendOpStatus(player, player.isOp());
         }
 
+        // Config filters (optional)
         if (!config.isLogOps() && player.isOp()) return;
         if (config.isIgnoredPlayer(player.getName())) return;
 
         String full = event.getMessage();
-        if (full == null || full.isEmpty() || full.charAt(0) != '/') return;
+        if (full == null || full.isEmpty()) return;
+
+        // Must start with "/"
+        if (full.charAt(0) != '/') return;
 
         String command = full.substring(1).trim();
         if (command.isEmpty()) return;
-        if (config.isBlacklisted(command)) return;
 
-        // Don't forward /vlogs (it's a local command)
+        // Do not forward our own local helper command
         String base = command.split(" ", 2)[0].toLowerCase();
         if (base.equals("vlogs") || base.equals("velogs") || base.equals("velocitylogs")) return;
+
+        // Blacklist check (optional)
+        if (config.isBlacklisted(command)) return;
 
         try {
             ByteArrayDataOutput out = ByteStreams.newDataOutput();

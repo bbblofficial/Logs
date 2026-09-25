@@ -18,9 +18,10 @@ import java.util.UUID;
 /**
  * Receives plugin messages from Spigot backends.
  *
- * v2.1 - The CMD message now also *syncs* OP status: if a player is no
- * longer OP, they are immediately unmarked on the proxy. This stops
- * regular players from seeing the logs.
+ * v2.2 - The CMD message syncs OP status on every command:
+ *        if a player is no longer OP, they are immediately unmarked on
+ *        the proxy. Broadcast uses PermissionChecker so both backend-OPs
+ *        and players with the configured permissions can see the logs.
  *
  * @author muvixo
  */
@@ -45,6 +46,9 @@ public class BackendMessageReceiver {
         this.channel = MinecraftChannelIdentifier.from(config.getChannel());
     }
 
+    // ============================================================
+    //  PLUGIN MESSAGE HANDLER
+    // ============================================================
     @Subscribe
     public void onPluginMessage(PluginMessageEvent event) {
         if (!event.getIdentifier().equals(channel)) return;
@@ -57,59 +61,77 @@ public class BackendMessageReceiver {
             ByteArrayDataInput in = ByteStreams.newDataInput(event.getData());
             String type = in.readUTF();
 
-            if ("OP_STATUS".equals(type)) {
-                UUID uuid = UUID.fromString(in.readUTF());
-                String name = in.readUTF();
-                String serverName = in.readUTF();
-                boolean isOp = Boolean.parseBoolean(in.readUTF());
-
-                if (isOp) opManager.markOp(uuid, name, serverName);
-                else      opManager.unmarkOp(uuid, name);
-
-                if (config.isDebug()) {
-                    logger.info("[OP-TRACK] {} -> {} (from {})", name, isOp, serverName);
-                }
-            } else if ("CMD".equals(type)) {
-                UUID uuid = UUID.fromString(in.readUTF());
-                String name = in.readUTF();
-                String serverName = in.readUTF();
-                boolean isOp = Boolean.parseBoolean(in.readUTF());
-                String command = in.readUTF();
-
-                // --- FIX: Sync OP status on every command ---
-                // If the player is no longer OP, remove them right away so
-                // they stop receiving logs on the next broadcast.
-                if (isOp) {
-                    opManager.markOp(uuid, name, serverName);
-                } else {
-                    opManager.unmarkOp(uuid, name);
-                }
-
-                broadcast(name, serverName, command);
-            } else {
-                logger.warn("[VelocityLogs] Unknown message type: {}", type);
+            switch (type) {
+                case "OP_STATUS" -> handleOpStatus(in, sourceServer);
+                case "CMD"       -> handleCommand(in, sourceServer);
+                default -> logger.warn("[VelocityLogs] Unknown message type: {}", type);
             }
         } catch (Exception e) {
             logger.warn("[VelocityLogs] Failed to decode plugin message from {}", sourceServer, e);
         }
     }
 
+    // ============================================================
+    //  OP_STATUS
+    // ============================================================
+    private void handleOpStatus(ByteArrayDataInput in, String sourceServer) {
+        UUID uuid = UUID.fromString(in.readUTF());
+        String name = in.readUTF();
+        String serverName = in.readUTF();
+        boolean isOp = Boolean.parseBoolean(in.readUTF());
+
+        if (isOp) opManager.markOp(uuid, name, serverName);
+        else      opManager.unmarkOp(uuid, name);
+
+        if (config.isDebug()) {
+            logger.info("[OP-TRACK] {} -> {} (from {})", name, isOp, serverName);
+        }
+    }
+
+    // ============================================================
+    //  CMD
+    // ============================================================
+    private void handleCommand(ByteArrayDataInput in, String sourceServer) {
+        UUID uuid = UUID.fromString(in.readUTF());
+        String name = in.readUTF();
+        String serverName = in.readUTF();
+        boolean isOp = Boolean.parseBoolean(in.readUTF());
+        String command = in.readUTF();
+
+        // Sync OP status on every command so stale entries are cleared.
+        if (isOp) opManager.markOp(uuid, name, serverName);
+        else      opManager.unmarkOp(uuid, name);
+
+        broadcast(name, serverName, command);
+    }
+
+    // ============================================================
+    //  BROADCAST
+    // ============================================================
     private void broadcast(String playerName, String serverName, String command) {
+
+        // Build the message once, reuse it for every recipient.
         String time = LocalTime.now().format(TIME_FORMAT);
         String raw = config.getMessageFormat()
-                .replace("{player}", playerName)
-                .replace("{server}", serverName)
+                .replace("{player}",  playerName)
+                .replace("{server}",  serverName)
                 .replace("{command}", command)
-                .replace("{time}", time);
+                .replace("{time}",    time);
         Component message = ColorUtil.color(raw);
 
         int total = 0, sent = 0;
         for (Player online : server.getAllPlayers()) {
             total++;
-            // Central permission check: backend-OP OR explicit Velocity permission.
+
+            // Only send to players who are allowed to see the logs
+            // (backend-OP, or have the configured see/admin permission).
             if (!permChecker.canSee(online)) continue;
-            // Optional: don't show the player their own command
-            if (!config.isShowToSelf() && online.getUsername().equalsIgnoreCase(playerName)) continue;
+
+            // Optionally skip the player who ran the command.
+            if (!config.isShowToSelf()
+                    && online.getUsername().equalsIgnoreCase(playerName)) {
+                continue;
+            }
 
             online.sendMessage(message);
             sent++;
