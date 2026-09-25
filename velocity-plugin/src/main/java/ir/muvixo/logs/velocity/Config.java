@@ -10,10 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
- * Config manager for VelocityLogs v2.0.
- *
- * In this revision, permission nodes and force-see-players have been
- * removed. Only backend-reported OP status grants log visibility.
+ * Config manager for VelocityLogs v2.1.
  *
  * @author muvixo
  */
@@ -30,6 +27,8 @@ public class Config {
     private boolean logToConsole;
     private boolean debug;
     private int opCacheExpireMinutes;
+    private String seePermission;
+    private String adminPermission;
 
     public Config(Path dataDirectory, Logger logger) {
         this.dataDirectory = dataDirectory;
@@ -59,8 +58,8 @@ public class Config {
         this.channel = root.node("channel").getString("velocitylogs:main");
         this.showToSelf = root.node("show-to-self").getBoolean(false);
         this.logToConsole = root.node("log-to-console").getBoolean(true);
-        this.debug = root.node("debug").getBoolean(true);
-        this.opCacheExpireMinutes = root.node("op-cache-expire-minutes").getInt(30);
+        this.debug = root.node("debug").getBoolean(false);
+        this.opCacheExpireMinutes = root.node("op-cache-expire-minutes").getInt(5);
 
         this.messageFormat = root.node("message-format").getString(
                 "&8[&cLogs&8] &e{player} &8>> &b{server} &8>> &f/{command}");
@@ -68,6 +67,11 @@ public class Config {
                 "&a[OK] Config reloaded successfully!");
         this.noPermissionMessage = root.node("no-permission-message").getString(
                 "&c[!] You don't have permission to do that!");
+
+        this.seePermission = root.node("permissions", "see")
+                .getString("velocitylogs.see");
+        this.adminPermission = root.node("permissions", "admin")
+                .getString("velocitylogs.admin");
     }
 
     public String getChannel() { return channel; }
@@ -78,4 +82,6 @@ public class Config {
     public boolean isLogToConsole() { return logToConsole; }
     public boolean isDebug() { return debug; }
     public int getOpCacheExpireMinutes() { return opCacheExpireMinutes; }
+    public String getSeePermission() { return seePermission; }
+    public String getAdminPermission() { return adminPermission; }
 }
