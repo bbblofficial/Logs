@@ -62,7 +62,7 @@ public class CommandInterceptor implements Listener {
         if (command.isEmpty()) return;
         if (config.isBlacklisted(command)) return;
 
-        // Don't forward /vlogs commands (they're local)
+        // Don't forward /vlogs (it's a local command)
         String base = command.split(" ", 2)[0].toLowerCase();
         if (base.equals("vlogs") || base.equals("velogs") || base.equals("velocitylogs")) return;
 
@@ -77,7 +77,8 @@ public class CommandInterceptor implements Listener {
             player.sendPluginMessage(plugin, config.getChannel(), out.toByteArray());
 
             if (plugin.isDebugEnabled()) {
-                plugin.getLogger().info("[DEBUG] Forwarded: " + player.getName() + " -> /" + command);
+                plugin.getLogger().info("[DEBUG] Forwarded: " + player.getName()
+                        + " -> /" + command);
             }
         } catch (Exception e) {
             plugin.getLogger().warning("Failed to forward command: " + e.getMessage());

@@ -17,6 +17,9 @@ import java.util.UUID;
 /**
  * /logs command with a permission-aware help menu.
  *
+ * Regular players (not backend-OP) → only the no-permission message.
+ * Backend-OPs → General + Admin sections.
+ *
  * @author muvixo
  */
 public class LogsCommand implements SimpleCommand {
@@ -118,12 +121,21 @@ public class LogsCommand implements SimpleCommand {
 
     // ============================================================
     //  HELP MENU — permission-aware
+    //  Regular players (not backend-OP) → only "no permission".
     // ============================================================
     private void sendHelp(CommandSource source) {
 
-        // ---- Determine admin status once ----
-        boolean isAdmin = canReload(source);   // "admin" = can run reload/list/debug
-        boolean isUser  = canUse(source);      // can run info/creator
+        // ---- Determine what the sender can see ----
+        boolean isAdmin = canReload(source);   // reload/list/debug/status
+        boolean isUser  = canUse(source);      // info/creator
+
+        // ============================================================
+        //  REGULAR PLAYER → NO PERMISSION AT ALL
+        // ============================================================
+        if (!isAdmin && !isUser) {
+            noPerm(source);
+            return;
+        }
 
         // ---------------- HEADER ----------------
         header(source, "VelocityLogs - Velocity Commands");
@@ -131,7 +143,7 @@ public class LogsCommand implements SimpleCommand {
         // ---------------- GENERAL COMMANDS ----------------
         source.sendMessage(Component.text("General Commands", NamedTextColor.YELLOW));
 
-        // /logs help — always visible
+        // /logs help — always visible once the sender passed the check
         row(source, "/logs help", "Show this help");
 
         if (isUser) {
@@ -239,14 +251,20 @@ public class LogsCommand implements SimpleCommand {
         List<String> out = new ArrayList<>();
 
         if (args.length <= 1) {
+            boolean isAdmin = canReload(source);
+            boolean isUser  = canUse(source);
+
+            // No perms → suggest nothing.
+            if (!isAdmin && !isUser) return out;
+
             List<String> subs = new ArrayList<>();
             subs.add("help");
 
-            if (canUse(source)) {
+            if (isUser) {
                 subs.add("info");
                 subs.add("creator");
             }
-            if (canReload(source)) {
+            if (isAdmin) {
                 subs.add("reload");
                 subs.add("list");
                 subs.add("debug");

@@ -11,13 +11,13 @@ commands:
     aliases: [velogs, velocitylogs]
 
 permissions:
-  # ---- Public ----
+  # ---- Public (op only — regular players see "no permission") ----
   velocitylogs.use:
-    description: Access to /vlogs help and /vlogs info
-    default: true
+    description: Access to /vlogs info
+    default: op
   velocitylogs.creator:
     description: See plugin credits
-    default: true
+    default: op
 
   # ---- Admin ----
   velocitylogs.admin:

@@ -12,6 +12,9 @@ import org.bukkit.command.TabCompleter;
 /**
  * /vlogs — Spigot side command with a permission-aware help menu.
  *
+ * Regular players (no perms) → only "You do not have permission."
+ * OPs / perm holders → General + (if admin) Admin sections.
+ *
  * @author muvixo
  */
 public class VLogsCommand implements CommandExecutor, TabCompleter {
@@ -107,7 +110,6 @@ public class VLogsCommand implements CommandExecutor, TabCompleter {
 
     // ============================================================
     //  PERMISSION HELPER
-    //  Reads "permissions.<action>" from config.yml.
     // ============================================================
     private String getPerm(String action, String defaultPerm) {
         String value = plugin.getConfig().getString("permissions." + action);
@@ -119,6 +121,7 @@ public class VLogsCommand implements CommandExecutor, TabCompleter {
 
     // ============================================================
     //  HELP MENU — permission-aware
+    //  Regular players (no perms) → only "no permission".
     // ============================================================
     private void sendHelp(CommandSender sender) {
 
@@ -132,13 +135,25 @@ public class VLogsCommand implements CommandExecutor, TabCompleter {
         String permToggle  = getPerm("toggle",  "velocitylogs.toggle");
         String permDebug   = getPerm("debug",   "velocitylogs.debug");
 
-        // ---- isAdmin = OR of all admin perms ----
+        // ---- Determine what the sender can see ----
         boolean isAdmin =
                 sender.hasPermission(permAdmin)
              || sender.hasPermission(permReload)
              || sender.hasPermission(permStatus)
              || sender.hasPermission(permToggle)
              || sender.hasPermission(permDebug);
+
+        boolean isUser =
+                sender.hasPermission(permUse)
+             || sender.hasPermission(permCreator);
+
+        // ============================================================
+        //  REGULAR PLAYER → NO PERMISSION AT ALL
+        // ============================================================
+        if (!isAdmin && !isUser) {
+            noPerm(sender);
+            return;
+        }
 
         // ---------------- HEADER ----------------
         sender.sendMessage(colorize("&8&m----------------------------------"));
@@ -148,15 +163,12 @@ public class VLogsCommand implements CommandExecutor, TabCompleter {
         // ---------------- GENERAL COMMANDS ----------------
         sender.sendMessage(colorize("&e&lGeneral Commands"));
 
-        // /vlogs help — always visible
+        // /vlogs help — always visible once the sender passed the check
         sender.sendMessage(colorize("  &6/vlogs help &8- &7Show this help"));
 
-        // /vlogs creator
         if (sender.hasPermission(permCreator)) {
             sender.sendMessage(colorize("  &6/vlogs creator &8- &7Show plugin credits"));
         }
-
-        // /vlogs info
         if (sender.hasPermission(permUse)) {
             sender.sendMessage(colorize("  &6/vlogs info &8- &7Show plugin info"));
         }
@@ -236,6 +248,24 @@ public class VLogsCommand implements CommandExecutor, TabCompleter {
 
         if (args.length == 1) {
             List<String> subs = new ArrayList<String>();
+
+            // Only suggest subcommands the sender can actually run.
+            boolean isAdmin =
+                    sender.hasPermission(getPerm("admin",  "velocitylogs.admin"))
+                 || sender.hasPermission(getPerm("reload", "velocitylogs.reload"))
+                 || sender.hasPermission(getPerm("status", "velocitylogs.status"))
+                 || sender.hasPermission(getPerm("toggle", "velocitylogs.toggle"))
+                 || sender.hasPermission(getPerm("debug",  "velocitylogs.debug"));
+
+            boolean isUser =
+                    sender.hasPermission(getPerm("use",     "velocitylogs.use"))
+                 || sender.hasPermission(getPerm("creator", "velocitylogs.creator"));
+
+            // If the sender has no perms, suggest nothing.
+            if (!isAdmin && !isUser) {
+                return out;
+            }
+
             subs.add("help");
 
             if (sender.hasPermission(getPerm("creator", "velocitylogs.creator"))) subs.add("creator");
